@@ -9,6 +9,17 @@ MAX_PAGE = 50
 
 OUTPUT_FILE = r"C:\FPT\SEG301\compare\tiki_products.jsonl"
 
+
+
+def load_clean_data(file_path):
+    data = []
+    with open(file_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            # Loại bỏ các ký tự ngắt dòng lạ bằng cách replace
+            clean_line = line.replace('\u2028', ' ').replace('\u2029', ' ')
+            if clean_line.strip():
+                data.append(json.loads(clean_line))
+    return data
 # ================== LOAD EXISTING IDS (JSONL)
 def load_existing_ids():
     ids = set()
