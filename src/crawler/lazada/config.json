@@ -1,0 +1,8 @@
+{
+    "platform": "2",
+    "delayBetweenKeywords": 10,
+    "keywords": [
+        "laptop"
+    ],
+    "maxPages": 2
+}
