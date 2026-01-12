@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Data files (không push file lớn)
+*.jsonl
+*.csv
+*.db
+*.sqlite
+data/
+!data_sample/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Project specific
+.cookies/
+.env
+progress.json
+debug_*.png
+chromedriver.exe
+*.zip
+
+# Build
+dist/
+build/
+*.egg-info/
+coverage/

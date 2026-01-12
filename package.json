@@ -1,0 +1,26 @@
+{
+    "name": "seg301-project-groupx",
+    "version": "1.0.0",
+    "description": "E-commerce Search Engine - SEG301 Project",
+    "private": true,
+    "workspaces": [
+        "src/crawler/lazada"
+    ],
+    "scripts": {
+        "crawl:lazada": "cd src/crawler/lazada && node index.js",
+        "web:lazada": "cd src/crawler/lazada && npm run web",
+        "install:all": "npm install && cd src/crawler/lazada && npm install"
+    },
+    "keywords": [
+        "search-engine",
+        "e-commerce",
+        "crawler",
+        "indexer",
+        "ranking"
+    ],
+    "author": "SEG301 Group X",
+    "license": "MIT",
+    "devDependencies": {
+        "concurrently": "^8.0.0"
+    }
+}
