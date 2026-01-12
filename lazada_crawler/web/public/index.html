@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🕷️ Lazada Crawler Dashboard</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>🕷️ LAZADA CRAWLER DASHBOARD</h1>
+      <div class="status-indicator" id="crawlerStatus">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Ready</span>
+      </div>
+    </header>
+
+    <!-- Database Stats -->
+    <section class="card">
+      <h2>📊 DATABASE STATS</h2>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-label">Total Products</div>
+          <div class="stat-value" id="totalProducts">-</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Last Updated</div>
+          <div class="stat-value small" id="lastUpdated">-</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Platform</div>
+          <div class="stat-value" id="platform">-</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Keyword Management -->
+    <section class="card">
+      <h2>🎯 KEYWORD MANAGEMENT</h2>
+      <div id="keywordsList" class="keywords-list">
+        <!-- Keywords will be populated here-->
+      </div>
+
+      <div class="keyword-input">
+        <input type="text" id="newKeywords" placeholder="Nhập keyword (hoặc nhiều keyword cách nhau bằng dấu phẩy)">
+        <button onclick="addKeywords()" class="btn btn-primary">➕ Add Keywords</button>
+      </div>
+      <p class="hint">💡 Tip: Nhập nhiều từ khóa cách nhau bằng dấu phẩy (vd: laptop, phone, tablet)</p>
+    </section>
+
+    <!-- Crawler Settings -->
+    <section class="card">
+      <h2>⚙️ CRAWLER SETTINGS</h2>
+      <div class="settings-grid">
+        <div class="setting-item">
+          <label>Max Pages per Keyword:</label>
+          <input type="number" id="maxPages" value="50" min="1" max="100">
+        </div>
+        <div class="setting-item">
+          <label>Platform:</label>
+          <select id="platform" disabled>
+            <option value="2">Lazada</option>
+            <option value="1">Tiki</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="saveSettings()" class="btn btn-secondary">💾 Save Settings</button>
+    </section>
+
+    <!-- Actions -->
+    <section class="card">
+      <h2>🚀 ACTIONS</h2>
+      <div class="action-buttons">
+        <button onclick="openReviewModal()" class="btn btn-info">📋 Review Plan</button>
+        <button onclick="startCrawler()" class="btn btn-success" id="startBtn">▶️ Start Crawler</button>
+        <button onclick="stopCrawler()" class="btn btn-danger" id="stopBtn" style="display:none;">⏹️ Stop
+          Crawler</button>
+        <button onclick="clearCookies()" class="btn btn-warning">🗑️ Clear Cookies</button>
+      </div>
+    </section>
+
+    <!-- Live Logs -->
+    <section class="card">
+      <h2>📜 LIVE LOGS</h2>
+      <div class="logs-container" id="logsContainer">
+        <div class="log-entry info">[18:51:00] Dashboard ready</div>
+      </div>
+      <button onclick="clearLogs()" class="btn btn-secondary">🗑️ Clear Logs</button>
+    </section>
+  </div>
+
+  <!-- Review Modal -->
+  <div id="reviewModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📋 REVIEW CRAWL PLAN</h2>
+        <span class="close" onclick="closeReviewModal()">&times;</span>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Plan will be populated here -->
+      </div>
+      <div class="modal-footer">
+        <button onclick="closeReviewModal()" class="btn btn-secondary">❌ Cancel</button>
+        <button onclick="approveAndStart()" class="btn btn-success">✅ Approve & Start</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/socket.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+
+</html>
