@@ -20,6 +20,7 @@ class LazadaCrawler {
   constructor() {
     this.platform = 'lazada';
     this.browser = null;
+    this.isHeadless = false; // Track browser mode
     this.cookiesPath = path.join(__dirname, '../../.cookies/lazada_cookies.json');
   }
 
@@ -66,6 +67,7 @@ class LazadaCrawler {
     // Auto-detect: Nếu có cookies → headless, nếu chưa → visible để giải CAPTCHA
     const hasCookies = fs.existsSync(this.cookiesPath);
     const headlessMode = hasCookies;
+    this.isHeadless = headlessMode; // Track state
 
     if (hasCookies) {
       console.log('🌐 Đang mở trình duyệt (Lazada - Headless Mode với cookies)...');
@@ -87,7 +89,7 @@ class LazadaCrawler {
   }
 
   async crawlListingPage(categoryUrl, categoryName, page = 1) {
-    const pageUrl = `${categoryUrl}?page=${page}`;
+    const pageUrl = `${categoryUrl}&page=${page}`;
     console.log(`\n📄 [Lazada] Đang crawl trang ${page}: ${pageUrl}`);
 
     // Random viewport for more realistic behavior
@@ -127,23 +129,247 @@ class LazadaCrawler {
       if (currentUrl.includes('punish') || currentUrl.includes('captcha')) {
         console.log('\n⚠️  ====================================');
         console.log('⚠️  PHÁT HIỆN CAPTCHA!');
-        console.log('🔔 VUI LÒNG GIẢI CAPTCHA TRONG BROWSER');
-        console.log('⏳ Đợi 90 giây để bạn giải CAPTCHA...');
-        console.log('⚠️  ====================================\n');
 
-        // Wait for user to solve CAPTCHA
-        await browserPage.waitForTimeout(90000);
+        // ⭐ NEW: Check if browser is in headless mode
+        if (this.isHeadless) {
+          console.log('🔄 Browser đang ở chế độ ẨN - cần chuyển sang VISIBLE...');
+          console.log('🔄 Đang đóng browser headless...');
 
-        // Check if CAPTCHA solved
-        const newUrl = browserPage.url();
-        if (!newUrl.includes('punish') && !newUrl.includes('captcha')) {
-          console.log('✅ CAPTCHA ĐÃ ĐƯỢC GIẢI! Lưu cookies...');
-          await this.saveCookies(context);
-
-          // ⭐ RESTART BROWSER IN HEADLESS MODE
-          console.log('🔄 Đóng browser visible...');
+          // Close current headless browser
+          const captchaUrl = currentUrl; // Save URL before closing
           await browserPage.close();
           await context.close();
+          await this.browser.close();
+
+          // Reopen in VISIBLE mode
+          console.log('🌐 Mở lại browser ở chế độ VISIBLE để giải CAPTCHA...');
+          this.browser = await chromium.launch({
+            headless: false,
+            args: [
+              '--disable-blink-features=AutomationControlled',
+              '--disable-features=IsolateOrigins,site-per-process',
+              '--no-sandbox',
+              '--disable-setuid-sandbox',
+              '--disable-dev-shm-usage',
+              '--start-maximized'
+            ]
+          });
+          this.isHeadless = false; // Update state
+
+          // Create new context and load cookies
+          const newContext = await this.browser.newContext({
+            userAgent: this.getRandomUserAgent(),
+            viewport: { width: viewportWidth, height: viewportHeight },
+            deviceScaleFactor: 1,
+            locale: 'vi-VN',
+            timezoneId: 'Asia/Ho_Chi_Minh'
+          });
+
+          await newContext.addInitScript(() => {
+            Object.defineProperty(navigator, 'webdriver', {
+              get: () => undefined
+            });
+          });
+
+          await this.loadCookies(newContext);
+
+          const newPage = await newContext.newPage();
+
+          // Navigate back to CAPTCHA page
+          console.log('🔄 Điều hướng lại trang có CAPTCHA...');
+          await newPage.goto(captchaUrl, { timeout: 60000 });
+          await newPage.waitForTimeout(2000);
+
+          console.log('🔔 VUI LÒNG GIẢI CAPTCHA TRONG BROWSER');
+          console.log('⏳ Đợi 60 giây để bạn giải CAPTCHA...');
+          console.log('⚠️  ====================================\n');
+
+          // Wait for user to solve CAPTCHA
+          await newPage.waitForTimeout(60000);
+
+          // Check if solved
+          const solvedUrl = newPage.url();
+          if (!solvedUrl.includes('punish') && !solvedUrl.includes('captcha')) {
+            console.log('✅ CAPTCHA ĐÃ ĐƯỢC GIẢI! Lưu cookies...');
+            await this.saveCookies(newContext);
+
+            // Restart in HEADLESS mode
+            console.log('🔄 Đóng browser visible...');
+            await newPage.close();
+            await newContext.close();
+            await this.browser.close();
+
+            console.log('🌐 Mở lại browser ở chế độ HEADLESS (ẩn)...');
+            this.browser = await chromium.launch({
+              headless: true,
+              args: [
+                '--disable-blink-features=AutomationControlled',
+                '--disable-features=IsolateOrigins,site-per-process',
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage'
+              ]
+            });
+            this.isHeadless = true; // Update state
+
+            console.log('✅ Browser đã chuyển sang chế độ ẨN (headless)');
+            console.log('✅ Từ giờ bạn sẽ không thấy browser nữa!\n');
+
+            return { total: 0, new: 0, needsRestart: true };
+          } else {
+            console.log('❌ CAPTCHA CHƯA ĐƯỢC GIẢI hoặc hết thời gian.');
+            console.log('⚠️  Skip keyword này. Vui lòng chạy lại.\n');
+            await newPage.close();
+            await newContext.close();
+            return { total: 0, new: 0 };
+          }
+        } else {
+          // Browser is already visible
+          console.log('🔔 VUI LÒNG GIẢI CAPTCHA TRONG BROWSER');
+          console.log('⏳ Đợi 60 giây để bạn giải CAPTCHA...');
+          console.log('⚠️  ====================================\n');
+
+          // Wait for user to solve CAPTCHA (reduced to 60s)
+          await browserPage.waitForTimeout(60000);
+
+          // Check if CAPTCHA solved
+          const newUrl = browserPage.url();
+          if (!newUrl.includes('punish') && !newUrl.includes('captcha')) {
+            console.log('✅ CAPTCHA ĐÃ ĐƯỢC GIẢI! Lưu cookies...');
+            await this.saveCookies(context);
+
+            // ⭐ RESTART BROWSER IN HEADLESS MODE
+            console.log('🔄 Đóng browser visible...');
+            await browserPage.close();
+            await context.close();
+            await this.browser.close();
+
+            console.log('🌐 Mở lại browser ở chế độ HEADLESS (ẩn)...');
+            this.browser = await chromium.launch({
+              headless: true,
+              args: [
+                '--disable-blink-features=AutomationControlled',
+                '--disable-features=IsolateOrigins,site-per-process',
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage'
+              ]
+            });
+            this.isHeadless = true; // Update state
+
+            console.log('✅ Browser đã chuyển sang chế độ ẨN (headless)');
+            console.log('✅ Từ giờ bạn sẽ không thấy browser nữa!\n');
+
+            // Return special flag to indicate restart needed
+            return { total: 0, new: 0, needsRestart: true };
+          } else {
+            console.log('❌ CAPTCHA CHƯA ĐƯỢC GIẢI hoặc hết thời gian.');
+            console.log('⚠️  Skip keyword này. Vui lòng chạy lại.\n');
+            return { total: 0, new: 0 };
+          }
+        }
+      }
+
+      // Enhanced scroll with more randomization
+      for (let i = 0; i < 5; i++) {
+        await browserPage.evaluate(() => {
+          const scrollAmount = Math.floor(window.innerHeight * (3 + Math.random() * 2));
+          window.scrollBy(0, scrollAmount);
+        });
+        await browserPage.waitForTimeout(300 + Math.floor(Math.random() * 500));
+      }
+
+      // ⭐ DEBUG: Take screenshot to see what Playwright sees
+      await browserPage.screenshot({ path: 'debug_lazada_page.png', fullPage: true });
+      console.log('📸 Debug screenshot saved: debug_lazada_page.png');
+
+      // ⭐ NEW: Detect bot detection / "No results" page
+      const pageContent = await browserPage.evaluate(() => {
+        const bodyText = document.body.innerText || '';
+        return {
+          hasNoResultsText: bodyText.includes('Tìm kiếm không có kết quả') ||
+            bodyText.includes('không tìm thấy kết quả') ||
+            bodyText.includes('No results found') ||
+            bodyText.includes('Xin lỗi, chúng tôi không thể tìm'),
+          hasProductItems: document.querySelectorAll('div.Ms6aG.MefHh, div[data-qa-locator="product-item"], div[data-tracking="product-card"]').length > 0,
+          bodyTextSample: bodyText.substring(0, 500) // First 500 chars for debugging
+        };
+      });
+
+      if (pageContent.hasNoResultsText && !pageContent.hasProductItems) {
+        console.log('\n⚠️  ====================================');
+        console.log('🚫 PHÁT HIỆN BOT DETECTION!');
+        console.log('🔍 Lazada trả về trang "Tìm kiếm không có kết quả"');
+        console.log('💡 Đây là dấu hiệu Lazada đã phát hiện BOT');
+        console.log('📸 Xem screenshot: debug_lazada_page.png');
+        console.log('⚠️  ====================================\n');
+
+        // ⭐ If in headless mode, switch to visible
+        if (this.isHeadless) {
+          console.log('🔄 Browser đang ở chế độ ẨN - cần chuyển sang VISIBLE...');
+          console.log('🔄 Đang đóng browser headless...');
+
+          // Close current headless browser
+          const currentPageUrl = pageUrl; // Save URL before closing
+          await browserPage.close();
+          await context.close();
+          await this.browser.close();
+
+          // Reopen in VISIBLE mode
+          console.log('🌐 Mở lại browser ở chế độ VISIBLE để xác thực...');
+          this.browser = await chromium.launch({
+            headless: false,
+            args: [
+              '--disable-blink-features=AutomationControlled',
+              '--disable-features=IsolateOrigins,site-per-process',
+              '--no-sandbox',
+              '--disable-setuid-sandbox',
+              '--disable-dev-shm-usage',
+              '--start-maximized'
+            ]
+          });
+          this.isHeadless = false; // Update state
+
+          // Create new context and load cookies
+          const newContext = await this.browser.newContext({
+            userAgent: this.getRandomUserAgent(),
+            viewport: { width: viewportWidth, height: viewportHeight },
+            deviceScaleFactor: 1,
+            locale: 'vi-VN',
+            timezoneId: 'Asia/Ho_Chi_Minh'
+          });
+
+          await newContext.addInitScript(() => {
+            Object.defineProperty(navigator, 'webdriver', {
+              get: () => undefined
+            });
+          });
+
+          await this.loadCookies(newContext);
+
+          const newPage = await newContext.newPage();
+
+          // Navigate to the page
+          console.log('🔄 Điều hướng tới trang bị block...');
+          await newPage.goto(currentPageUrl, { timeout: 60000 });
+          await newPage.waitForTimeout(3000);
+
+          console.log('🔔 VUI LÒNG GIẢI CAPTCHA / XÁC THỰC TRONG BROWSER (nếu có)');
+          console.log('💡 Browse một vài trang để Lazada tin bạn là người thật');
+          console.log('⏳ Đợi 60 giây để bạn xác thực...');
+          console.log('⚠️  ====================================\n');
+
+          // Wait for user to verify
+          await newPage.waitForTimeout(60000);
+
+          // Save cookies after verification
+          console.log('✅ Lưu cookies sau khi xác thực...');
+          await this.saveCookies(newContext);
+
+          // Restart in HEADLESS mode
+          console.log('🔄 Đóng browser visible...');
+          await newPage.close();
+          await newContext.close();
           await this.browser.close();
 
           console.log('🌐 Mở lại browser ở chế độ HEADLESS (ẩn)...');
@@ -157,26 +383,22 @@ class LazadaCrawler {
               '--disable-dev-shm-usage'
             ]
           });
+          this.isHeadless = true; // Update state
 
           console.log('✅ Browser đã chuyển sang chế độ ẨN (headless)');
           console.log('✅ Từ giờ bạn sẽ không thấy browser nữa!\n');
 
-          // Return special flag to indicate restart needed
           return { total: 0, new: 0, needsRestart: true };
         } else {
-          console.log('❌ CAPTCHA CHƯA ĐƯỢC GIẢI hoặc hết thời gian.');
-          console.log('⚠️  Skip keyword này. Vui lòng chạy lại.\n');
-          return { total: 0, new: 0 };
-        }
-      }
+          // Browser is already visible
+          console.log('💡 Browser đang VISIBLE - vui lòng tương tác với trang để verify');
+          console.log('⏳ Đợi 60 giây...');
+          await browserPage.waitForTimeout(60000);
 
-      // Enhanced scroll with more randomization
-      for (let i = 0; i < 5; i++) {
-        await browserPage.evaluate(() => {
-          const scrollAmount = Math.floor(window.innerHeight * (3 + Math.random() * 2));
-          window.scrollBy(0, scrollAmount);
-        });
-        await browserPage.waitForTimeout(300 + Math.floor(Math.random() * 500));
+          // Save cookies
+          await this.saveCookies(context);
+          return { total: 0, new: 0, needsRestart: true };
+        }
       }
 
       const products = await browserPage.evaluate(() => {

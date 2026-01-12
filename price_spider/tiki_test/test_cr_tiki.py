@@ -13,7 +13,7 @@ from crawler.normalize import normalize
 # ================== CẤU HÌNH
 keyword = input("Nhập từ khóa tìm kiếm trên Tiki: ")
 keyword_normalized = normalize(keyword)  # Normalize for matching
-csv_name = r"C:\Users\letan\Downloads\SEG301\price_spider\tiki_test\crawl_tiki.csv"
+csv_name = r"C:\Users\letan\Downloads\SEG301\price_spider\data\crawl_tiki.csv"
 MAX_PAGE = 40  # Số page thử nghiệm, có thể tăng
 
 # ================== ĐỌC CSV CŨ (nếu có)

@@ -1,10 +1,12 @@
 {
-    "platform": "2",
-    "delayBetweenKeywords": 10,
-    "keywords": [
-        "Loa bluetooth",
-        "May anh",
-        "Camera hanh trinh"
-    ],
-    "maxPages": 50
+  "platform": "2",
+  "delayBetweenKeywords": 10,
+  "keywords": [
+    "Máy lọc không khí",
+    "Máy nước nóng",
+    "Bếp điện",
+    "Bếp từ",
+    "Bình nước nóng"
+  ],
+  "maxPages": 50
 }
