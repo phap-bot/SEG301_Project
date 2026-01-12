@@ -20,7 +20,7 @@ class DienMayXanhScraper:
         self.headless = headless
 
     async def scrape_keyword(self, keyword, max_pages=50):
-        print(f"🚀 [DienMayXanh] Starting scrape for '{keyword}'...")
+        print(f" [DienMayXanh] Starting scrape for '{keyword}'...")
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=self.headless)
             context = await browser.new_context(
