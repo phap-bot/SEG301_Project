@@ -10,6 +10,24 @@ KEYWORDS = [k.strip() for k in keywords_input.split(",") if k.strip()]
 MAX_PAGE = 50
 OUTPUT_FILE = r"C:\FPT\SEG301\compare\tiki_products.jsonl"
 
+# ================== LOAD CLEAN DATA ==================
+def load_clean_data(file_path):
+    """Load toàn bộ dữ liệu JSONL sạch, loại bỏ ký tự lạ"""
+    data = []
+    if not os.path.exists(file_path):
+        return data
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            clean_line = line.replace('\u2028', ' ').replace('\u2029', ' ')
+            if clean_line.strip():
+                try:
+                    data.append(json.loads(clean_line))
+                except json.JSONDecodeError:
+                    continue
+    return data
+
+# ================== LOAD EXISTING IDS ==================
 def load_existing_ids():
     """Load product_id đã crawl để tránh duplicate"""
     ids = set()
