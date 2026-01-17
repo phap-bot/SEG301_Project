@@ -54,16 +54,66 @@
 - Folder structure theo template giáo viên
 
 **Review & Modifications:**
-- ✅ User chọn Direct Copy approach
-- ✅ Created SEG301-Project-GroupX structure
-- ✅ Copied lazada_crawler vào src/crawler/lazada/
+-  User chọn Direct Copy approach
+-  Created SEG301-Project-GroupX structure
+-  Copied lazada_crawler vào src/crawler/lazada/
 
 **Impact:** **High**  
 - Đảm bảo code submission đúng format cho giáo viên
 - Dễ dàng tích hợp code từ nhiều thành viên
 - Clear attribution và credits
 
+## 2026-01-13
+
+### Hau – Tiki Crawling Troubleshooting
+**Task:** Crawl dữ liệu sản phẩm từ sàn Tiki và xử lý các vấn đề liên quan đến dynamic content, API bảo vệ và rate limiting.  
+**AI Tool:** ChatGPT (GPT-4 / GPT-4o)
+
+**Prompts:**
+1. "Viết code Python dùng thư viện requests để gọi API lấy danh sách sản phẩm Tiki thay vì parse HTML."
+2. "Thêm các headers giả lập trình duyệt (User-Agent, Referer, x-guest-token) vào request để không bị block."
+3. "Bổ sung vòng lặp phân trang (page, limit) và tự động sleep ngẫu nhiên để tránh lỗi HTTP 429."
+
+**Code Generated:**
+- `src/crawler/tiki/tiki_api_crawler.py`
+  - Chuyển logic từ parse HTML sang gọi API JSON nội bộ
+  - Thiết lập custom headers (User-Agent, x-guest-token) mô phỏng browser
+  - Logic phân trang sử dụng tham số `page` và `limit`
+
+**Review & Modifications:**
+- Điều chỉnh lại bộ headers sau khi test thực tế để bypass filter
+- Thêm cơ chế retry và backoff (tăng thời gian chờ) khi gặp lỗi HTTP 429
+- Test thành công dữ liệu trả về trên nhiều category khác nhau
+
+**Impact:** **High**  
+- Crawl dữ liệu ổn định hơn so với Selenium, giảm nguy cơ bị bot detection
+- Dữ liệu nhận về dạng JSON có cấu trúc, giảm chi phí xử lý hậu kỳ
+
 ---
+
+### Hau – Chợ Tốt Crawling Troubleshooting
+**Task:** Crawl dữ liệu tin đăng từ Chợ Tốt và xử lý các vấn đề liên quan đến API thay đổi, thiếu field và bot detection.  
+**AI Tool:** ChatGPT (GPT-4 / GPT-4o)
+
+**Prompts:**
+1. "Viết script Python gọi trực tiếp endpoint API của Chợ Tốt để lấy danh sách tin đăng."
+2. "Thêm logic random delay từ 2-5 giây và xoay vòng User-Agent để tránh bị phát hiện là bot."
+3. "Xử lý dữ liệu JSON trả về, lọc bỏ các field bị null và lưu kết quả."
+
+**Code Generated:**
+- `src/crawler/chotot/chotot_api_crawler.py`
+  - Logic crawl dữ liệu trực tiếp từ API endpoint đã reverse engineering
+  - Tích hợp random delay và User-Agent rotation
+  - Hàm validate schema response để xử lý các field bị null
+
+**Review & Modifications:**
+- Điều chỉnh params API riêng biệt cho từng category (Bất động sản, Xe cộ...)
+- Loại bỏ các field không ổn định khỏi data schema
+- Test chạy ổn định trong thời gian dài (long-running)
+
+**Impact:** **High**  
+- Tốc độ crawl nhanh và nhẹ hơn Selenium, giảm nguy cơ bị block IP
+- Đảm bảo dữ liệu sạch và đồng nhất cho các bước xử lý tiếp theo
 
 ## Template cho log mới:
 
