@@ -1,7 +1,4 @@
 
-***
-
-```markdown
 # SEG301 E-Commerce Search Engine Project
 
 ## 1. Team Information
@@ -232,4 +229,3 @@ SEG301-Project-GroupX/
 ## 9. Credits & Attribution
 *   **Lazada Crawler:** Adapted from [phap-bot/SEG301_Project](https://github.com/phap-bot/SEG301_Project).
 *   **AI Assistance:** Debugging and bot-detection strategies are documented in `ai_log.md`.
-```
