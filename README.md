@@ -1,89 +1,120 @@
+
+***
+
+```markdown
 # SEG301 E-Commerce Search Engine Project
 
-## Team Information
-**Group:** Group X  
-**Members:**
+## 1. Team Information
+**Group:** Group Tiki
 
-| Name | Student ID | Role | Contribution | Original Repo |
-|------|-----------|------|--------------|---------------|
-| Phap | SEXXXXXX | Crawler Lead (Lazada) | Milestone 1: Lazada crawler với anti-bot detection | [phap-bot/SEG301_Project](https://github.com/phap-bot/SEG301_Project) |
-| [Bạn A] | SEXXXXXX | Crawler (Platform 2) | Milestone 1: [Platform] crawler | - |
-| [Bạn B] | SEXXXXXX | Indexer | Milestone 2: SPIMI implementation | - |
-| [Bạn C] | SEXXXXXX | Ranking & UI | Milestone 2 & 3: BM25 + Semantic Search + UI | - |
+| Name | Student ID | Role | Contribution | 
+|------|-----------|------|--------------|
+| Nguyễn Lê Tấn Pháp | QE190155 | Crawler Lead | Crawling Lazada & Điện Máy Xanh, anti-bot strategy |
+| Tô Thanh Hậu | QE190039 | Crawler & Data Engineer | Crawling Tiki & Chợ Tốt, data normalization | 
+| Nguyễn Hải Nam | QE190027 | Crawler | Crawling Lazada & CellphoneS, anti-bot detection | 
 
-## Project Overview
-Search engine cho sản phẩm e-commerce từ Lazada và các platform khác với khả năng:
-- ✅ Thu thập dữ liệu tự động từ nhiều platform (anti-bot detection)
-- ✅ Tạo chỉ mục với SPIMI algorithm
-- ✅ Xếp hạng với BM25 và Semantic Search
-- ✅ Giao diện web thân thiện với dashboard
+---
 
-## Tech Stack
-- **Crawler**: Node.js (Playwright with Stealth) + Python (Selenium)
-- **Indexer**: Python (SPIMI handcoded)
-- **Ranking**: Python (BM25 handcoded + Sentence Transformers)
-- **UI**: Streamlit / Web Dashboard
-- **Database**: SQLite
+## 2. Project Description
+This project implements an e-commerce search engine that aggregates product data from major Vietnamese e-commerce platforms. The system focuses on automated data collection, scalable indexing, and effective ranking methods.
 
-## Installation
+### Key Functionalities
+- **Data Collection:** Automated crawling with robust anti-bot detection handling.
+- **Indexing:** Text indexing using the **SPIMI** algorithm.
+- **Ranking:**
+  - Keyword-based: **BM25** (handcoded).
+  - Semantic-based: **Sentence Transformers**.
+- **User Interface:** Web-based search interface and real-time monitoring dashboard.
 
-### Prerequisites
-- Node.js >= 18.0
-- Python >= 3.9
+### Supported Platforms
+The system aggregates data from:
+- Lazada
+- Tiki
+- Chợ Tốt
+- Điện Máy Xanh
+- CellphoneS
+
+---
+
+## 3. System Architecture & Technologies
+The system follows a modular pipeline design:
+
+### Tech Stack
+- **Crawler:**
+  - *Node.js:* Playwright (with Stealth plugin).
+  - *Python:* Selenium.
+- **Indexer:** Python (Custom SPIMI implementation).
+- **Ranking:** Python (BM25 & Vector Models).
+- **UI:** Streamlit (Python).
+- **Database:** SQLite & JSONL files.
+
+---
+
+## 4. Installation & Environment Setup
+
+### 4.1. Requirements
+Ensure you have the following installed:
+- Node.js (>= version 18)
+- Python (>= version 3.9)
 - Git
 
-### Setup
+### 4.2. Step-by-Step Setup
 
-#### 1. Clone repository
+**Step 1: Clone the repository**
 ```bash
 git clone https://github.com/your-group/SEG301-Project-GroupX
 cd SEG301-Project-GroupX
 ```
 
-#### 2. Install Python dependencies (for Milestone 2 & 3)
+**Step 2: Python Environment Setup**
 ```bash
+# Create virtual environment
 python -m venv venv
-# Windows:
+
+# Activate environment
+# On Windows:
 venv\Scripts\activate
-# Linux/Mac:
+# On Linux / macOS:
 source venv/bin/activate
 
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-#### 3. Install Node.js dependencies (for crawlers)
+**Step 3: Node.js Environment Setup (For Crawler)**
 ```bash
-# Install dependencies for Lazada crawler
 cd src/crawler/lazada
 npm install
-cd ../../..
+cd ../../..  # Return to root directory
 ```
 
-## Usage
+---
 
-### Milestone 1: Data Collection
+## 5. Execution & Usage
 
-#### Run Lazada Crawler
+### 5.1. Crawling Data
+Navigate to the crawler directory and start the process:
+
 ```bash
 cd src/crawler/lazada
 node index.js
 ```
 
 **Features:**
-- ✅ Auto-detect và switch headless/visible mode cho CAPTCHA
-- ✅ Phát hiện bot detection ("Tìm kiếm không có kết quả")
-- ✅ Tự động lưu cookies
-- ✅ Web dashboard để monitor tiến trình
+*   **Anti-bot Handling:**
+    *   Automatic switching between `headless` and `visible` modes when CAPTCHA is detected.
+    *   Detection of abnormal or empty search results.
+*   **Persistence:** Automatic cookie saving/loading.
 
-**Access Dashboard:**
+**Monitoring Dashboard:**
+To view the real-time crawling status:
 ```bash
-cd src/crawler/lazada
 npm run web
-# Open http://localhost:3000
 ```
+> **Access:** [http://localhost:3000](http://localhost:3000)
 
-#### Configure keywords
-Edit `src/crawler/lazada/config.json`:
+**Configuration:**
+Modify keywords in `src/crawler/lazada/config.json`:
 ```json
 {
   "keywords": [
@@ -94,77 +125,111 @@ Edit `src/crawler/lazada/config.json`:
 }
 ```
 
-### Milestone 2: Indexing & Ranking
+### 5.2. Indexing & Ranking
+Once data is collected, run the following scripts to build the index and calculate rankings:
+
+1.  **Build Index (SPIMI):**
+    ```bash
+    python src/indexer/spimi.py
+    ```
+2.  **Run Ranking Algorithm (BM25):**
+    ```bash
+    python src/ranking/bm25.py
+    ```
+
+### 5.3. Search Interface
+Launch the web application to search for products:
+
 ```bash
-# TODO: Implement SPIMI indexer
-python src/indexer/spimi.py
-
-# TODO: Implement BM25 ranking
-python src/ranking/bm25.py
-```
-
-### Milestone 3: Search UI
-```bash  
-# TODO: Implement search UI
 streamlit run src/ui/app.py
 ```
 
-## Dataset
-- **Sample Data**: `data_sample/` (100-200 products for testing)
-- **Full Dataset**: [📥 Download from Google Drive](https://drive.google.com/...) 
-  - ~500MB compressed
-  - ~1M products from Lazada
-  - Format: SQLite database + JSONL
+---
 
-## Project Structure
+## 6. Dataset Description
+
+### 6.1. Data Responsibilities
+| Member | Platforms Assigned |
+|--------|--------------------|
+| **Nguyễn Lê Tấn Pháp** | Lazada, Điện Máy Xanh |
+| **Tô Thanh Hậu** | Tiki, Chợ Tốt |
+| **Nguyễn Hải Nam** | Lazada, CellphoneS |
+
+### 6.2. Sample Dataset
+Located in `data_sample/`. Contains 100–200 products per platform for testing.
+*   `lazada_sample.jsonl`
+*   `tiki_sample.jsonl`
+*   `chotot_sample.jsonl`
+*   `dienmayxanh_sample.jsonl`
+*   `cellphones_sample.jsonl`
+
+### 6.3. Data Schema
+All datasets follow a unified JSON structure:
+
+```json
+{
+  "platform": "lazada",
+  "product_id": "123456",
+  "name": "Product Name",
+  "price": 1000000,
+  "original_price": 1500000,
+  "discount": 33,
+  "url": "https://example.com/product/123",
+  "rating": 4.5,
+  "reviews": 120
+}
 ```
+
+### 6.4. Full Dataset Access
+*   **Link:** `https://drive.google.com/...` (Update link)
+*   **Total Size:** ~500MB (Compressed)
+*   **Scale:** ~1,000,000 products
+*   **Format:** JSONL and SQLite
+
+> **Note:** This dataset is provided for academic purposes only.
+
+---
+
+## 7. Project Structure
+
+```text
 SEG301-Project-GroupX/
-├── .gitignore
-├── README.md
-├── ai_log.md              # AI usage tracking
-├── requirements.txt       # Python dependencies
-├── package.json          # Node.js workspace config
+├── ai_log.md               # AI debugging logs
+├── package.json            # Node.js dependencies
+├── requirements.txt        # Python dependencies
+├── README.md               # Project documentation
 │
-├── docs/                 # Reports & presentations
-│   ├── Milestone1_Report.pdf
-│   ├── Milestone2_Report.pdf
-│   └── Milestone3_Presentation.pdf
+├── data_sample/            # Sample data files
+│   ├── lazada_sample.jsonl
+│   └── ...
 │
-├── data_sample/          # Sample data for testing
-│   └── lazada_sample.jsonl
+├── src/                    # Source code
+│   ├── crawler/            # Crawling scripts (Node/Python)
+│   ├── indexer/            # SPIMI implementation
+│   ├── ranking/            # BM25 & Semantic ranking
+│   └── ui/                 # Streamlit App
 │
-├── src/
-│   ├── crawler/          # Milestone 1: Data collection
-│   │   └── lazada/       # Lazada crawler (by Phap)
-│   │       ├── index.js
-│   │       ├── src/
-│   │       │   ├── crawlers/lazada.js
-│   │       │   └── utils/
-│   │       └── web/      # Dashboard
-│   │
-│   ├── indexer/          # Milestone 2: SPIMI indexing
-│   │   └── spimi.py
-│   │
-│   ├── ranking/          # Milestone 2 & 3: Ranking
-│   │   ├── bm25.py
-│   │   └── vector.py
-│   │
-│   └── ui/               # Milestone 3: Search interface
-│       └── app.py
-│
-└── tests/                # Unit tests
-    ├── test_spimi.py
-    └── test_bm25.py
+└── tests/                  # Unit tests
 ```
 
-## Development Timeline
-- **Milestone 1** (Week 1-3): Data Collection ✅
-- **Milestone 2** (Week 4-6): Indexing & Ranking
-- **Milestone 3** (Week 7-9): Search UI & Presentation
+---
 
-## Credits & Attribution
-- **Lazada Crawler**: Developed by Phap, original repo: https://github.com/phap-bot/SEG301_Project
-- **Bot Detection Fix**: Implemented with assistance from Google Gemini AI (see `ai_log.md`)
+## 8. Development Timeline
 
-## License
-MIT License - SEG301 Project 2026
+*   **Phase 1 (Weeks 1–4):**
+    *   Setup environment.
+    *   Implement crawlers for all platforms.
+    *   Data cleaning and normalization.
+*   **Phase 2 (Weeks 5–7):**
+    *   Implement SPIMI indexing algorithm.
+    *   Develop BM25 ranking and integrate semantic search.
+*   **Phase 3 (Weeks 8–10):**
+    *   Build Search UI (Streamlit).
+    *   Final testing and presentation.
+
+---
+
+## 9. Credits & Attribution
+*   **Lazada Crawler:** Adapted from [phap-bot/SEG301_Project](https://github.com/phap-bot/SEG301_Project).
+*   **AI Assistance:** Debugging and bot-detection strategies are documented in `ai_log.md`.
+```
