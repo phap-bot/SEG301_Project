@@ -62,6 +62,7 @@
 - Đảm bảo code submission đúng format cho giáo viên
 - Dễ dàng tích hợp code từ nhiều thành viên
 - Clear attribution và credits
+- 18/01
   Tôi: Yêu cầu lấy chính xác số lượng đánh giá (
 review_count
   cho các sản phẩm (ví dụ dòng "Alpha Works" bị mất 0 đánh giá). Chấp nhận tốc độ chậm hơn (khoảng 10x) để crawler vào từng trang chi tiết lấy dữ liệu chuẩn (Deep Crawl).
