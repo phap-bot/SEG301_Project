@@ -1,13 +1,15 @@
+"""
+Shopee Spider - Sử dụng BaseSpider
+"""
 import asyncio
-import random
-from playwright.async_api import async_playwright
+from typing import List, Dict
+from crawler.spider import BaseSpider
+from crawler.parser import (
+    extract_text, extract_image_url, extract_product_url, parse_price, clean_text,
+    extract_rating, extract_review_count, extract_original_price, calculate_discount_percent,
+    extract_product_id_from_url, extract_category
+)
 
-try:
-    from playwright_stealth import stealth_async
-except ImportError:
-    async def stealth_async(page): pass
-
-# Robust import for entity resolution
 try:
     from crawler.entity_resolution import normalize_text
 except ImportError:
@@ -16,126 +18,150 @@ except ImportError:
     except ImportError:
         def normalize_text(t): return t.lower()
 
-class ShopeeScraper:
-    def __init__(self, headless=True):
-        self.headless = headless
 
-    async def scrape_keyword(self, keyword, max_pages=1):
-        print(f"🚀 [Shopee] Starting scrape for '{keyword}'...")
+class ShopeeSpider(BaseSpider):
+    """Shopee crawler sử dụng BaseSpider"""
+    
+    def __init__(self, headless=True, use_proxy=False):
+        super().__init__(
+            source_name="Shopee",
+            base_url="https://shopee.vn",
+            headless=headless,
+            use_proxy=use_proxy
+        )
+    
+    def build_search_url(self, keyword: str, page: int = 1) -> str:
+        """Build Shopee search URL (0-indexed)"""
+        return f"https://shopee.vn/search?keyword={keyword}&page={page - 1}"
+    
+    def get_product_selector(self) -> str:
+        """Shopee product selector"""
+        return '.shopee-search-item-result__item, div[data-sqe="item"]'
+    
+    async def scrape_keyword(self, keyword: str, max_pages: int = 1) -> list:
+        """Override để xử lý Shopee pagination (0-indexed) với parallel crawling"""
+        all_products = []
+        
+        from playwright.async_api import async_playwright
+        from crawler.utils import safe_goto, scroll_to_bottom, random_delay, apply_stealth
+        
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=self.headless)
-            context = await browser.new_context(
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                viewport={"width": 1280, "height": 800}
-            )
+            await self.setup_browser(p)
             
-            page = await context.new_page()
-            await stealth_async(page)
-            
-            all_products = []
-
-            for page_num in range(0, max_pages): # Shopee pages are 0-indexed usually or offset based
-                # For Shopee UI, we search normally.
-                url = f"https://shopee.vn/search?keyword={keyword}&page={page_num}"
-                print(f"📄 [Shopee] Navigating to search: {url}")
-                
-                try:
-                    await page.goto(url, wait_until="domcontentloaded", timeout=40000)
-                    
-                    # Shopee needs time to load JS
-                    await asyncio.sleep(random.uniform(4, 6))
-                    
-                    # Scroll down to load all items
-                    await self.scroll_to_bottom(page)
-                    
-                    # Selectors for Shopee Product Items
-                    # Usually: [data-sqe="item"] or similar classes
-                    item_selector = 'div[data-sqe="item"] button, a[data-sqe="link"]'
-                    # Shopee DOM is complex and obfuscated classnames.
-                    # Best bet: data-sqe="item" is a stable attribute for items.
-                    # Actually valid selector for list items might be: 
-                    # .shopee-search-item-result__item
-                    
-                    product_elements = await page.locator('.shopee-search-item-result__item').all()
-                    
-                    if not product_elements:
-                        # Fallback try generic
-                        product_elements = await page.locator('div[data-sqe="item"]').all()
+            try:
+                # Crawl pages song song
+                async def scrape_page(page_num: int) -> List[Dict]:
+                    """Crawl một page Shopee"""
+                    try:
+                        url = f"https://shopee.vn/search?keyword={keyword}&page={page_num}"
                         
-                    print(f"🔍 [Shopee] Found {len(product_elements)} items on page {page_num}")
-
-                    for item in product_elements:
+                        # Tạo page mới cho parallel
+                        page = await self.context.new_page()
+                        await apply_stealth(page)
+                        
                         try:
-                            # Name
-                            # data-sqe="name"
-                            name_el = item.locator('div[data-sqe="name"]')
-                            if await name_el.count() > 0:
-                                name = await name_el.first.inner_text()
-                            else:
-                                continue # No name, probably ad or skeleton
-
-                            # Price
-                            # .shopee-price-d2 or similar.
-                            # Usually simple text check
-                            text_content = await item.inner_text()
-                            price = self.parse_price(text_content)
+                            if await safe_goto(page, url, timeout=20000, retries=2):
+                                await random_delay(0.3, 0.6)  # Shopee cần chút thời gian
+                                await scroll_to_bottom(page, scroll_steps=3, step_delay=0.1)
+                                
+                                # Thử selector chính trước
+                                product_elements = await page.locator('.shopee-search-item-result__item').all()
+                                if not product_elements:
+                                    product_elements = await page.locator('div[data-sqe="item"]').all()
+                                
+                                products = []
+                                # Parse song song
+                                tasks = [self.parse_product(item) for item in product_elements]
+                                results = await asyncio.gather(*tasks, return_exceptions=True)
+                                
+                                for result in results:
+                                    if isinstance(result, dict) and result:
+                                        products.append(result)
+                                
+                                return products
+                        finally:
+                            await page.close()
+                    except Exception as e:
+                        print(f"⚠️ [{self.source_name}] Error on page {page_num}: {e}")
+                        return []
+                
+                # Crawl tất cả pages song song (batch)
+                batch_size = 10
+                for batch_start in range(0, max_pages, batch_size):
+                    batch_end = min(batch_start + batch_size, max_pages)
+                    page_nums = range(batch_start, batch_end)
+                    
+                    tasks = [scrape_page(page_num) for page_num in page_nums]
+                    batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+                    
+                    for page_num, result in zip(page_nums, batch_results):
+                        if isinstance(result, list):
+                            all_products.extend(result)
+                            print(f"✅ [{self.source_name}] Page {page_num + 1}: {len(result)} items")
+                        elif isinstance(result, Exception):
+                            print(f"❌ [{self.source_name}] Page {page_num + 1}: {result}")
                             
-                            # URL
-                            # link is on the anchor tag
-                            link_el = item.locator('a')
-                            link = await link_el.first.get_attribute("href")
-                            if link and link.startswith("/"):
-                                link = "https://shopee.vn" + link
+            finally:
+                await self.cleanup()
+        
+        return all_products
+    
+    async def parse_product(self, item_locator) -> dict:
+        """Parse Shopee product item với format JSON chuẩn"""
+        # Name
+        name_el = item_locator.locator('div[data-sqe="name"]')
+        name = await extract_text(name_el)
+        
+        if not name:
+            return None  # Không có name, có thể là ad hoặc skeleton
+        
+        name = clean_text(name)
+        
+        # Price - lấy từ toàn bộ text của item
+        text_content = await extract_text(item_locator)
+        price = parse_price(text_content)
+        
+        # Original price
+        original_price = await extract_original_price(item_locator)
+        
+        # Discount percent
+        discount_percent = calculate_discount_percent(original_price, price) if original_price > 0 else 0.0
+        
+        # URL
+        link_el = item_locator.locator('a').first
+        url = await extract_product_url(link_el, self.base_url)
+        
+        # Product ID từ URL
+        product_id = extract_product_id_from_url(url)
+        
+        # Image
+        image_url = await extract_image_url(item_locator, self.base_url)
+        
+        # Rating
+        rating = await extract_rating(item_locator)
+        
+        # Review count
+        review_count = await extract_review_count(item_locator)
+        
+        # Category
+        category = await extract_category(item_locator)
+        
+        return {
+            "platform": "Shopee",
+            "product_id": product_id,
+            "product_name": name,
+            "price": price,
+            "original_price": original_price if original_price > 0 else None,
+            "discount_percent": discount_percent if discount_percent > 0 else None,
+            "product_url": url,
+            "image_url": image_url,
+            "rating": rating if rating > 0 else None,
+            "review_count": review_count if review_count > 0 else None,
+            "category": category if category else None
+        }
 
-                            # Image
-                            # img inside
-                            img_el = item.locator('img')
-                            img = await img_el.first.get_attribute("src")
-                            
-                            all_products.append({
-                                "source": "Shopee",
-                                "name": name,
-                                "price": price,
-                                "url": link,
-                                "image": img,
-                                "normalized_name": normalize_text(name)
-                            })
-                            
-                        except Exception as e:
-                            continue
-                            
-                except Exception as e:
-                    print(f"⚠️ [Shopee] Error: {e}")
-            
-            await browser.close()
-            return all_products
 
-    async def scroll_to_bottom(self, page):
-        for _ in range(5):
-            await page.mouse.wheel(0, 1000)
-            await asyncio.sleep(random.uniform(0.5, 1.5))
-
-    def parse_price(self, text):
-        import re
-        # Look for patterns like ₫15.000
-        match = re.search(r'₫([\d,.]+)', text)
-        if match:
-            clean = match.group(1).replace('.', '').replace(',', '')
-            return float(clean)
-        # Or just numbers
-        return 0.0
-
-def search(keyword):
-    scraper = ShopeeScraper(headless=True)
-    try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-             return loop.run_until_complete(scraper.scrape_keyword(keyword))
-        else:
-             return loop.run_until_complete(scraper.scrape_keyword(keyword))
-    except RuntimeError:
-         return asyncio.run(scraper.scrape_keyword(keyword))
-
-if __name__ == "__main__":
-    from pprint import pprint
-    pprint(search("iphone 13"))
+def search(keyword, max_pages=50):
+    """Sync wrapper for main.py integration"""
+    spider = ShopeeSpider(headless=True)
+    return spider.run_sync(keyword, max_pages=max_pages)

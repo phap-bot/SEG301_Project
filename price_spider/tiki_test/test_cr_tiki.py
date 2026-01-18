@@ -1,131 +1,113 @@
-import requests
-import pandas as pd
+import asyncio
+import aiohttp
 import os
-import time
-import csv
-import random
-import sys
+import json
 
-# Import normalize function from crawler
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-from crawler.normalize import normalize
+# ================== CONFIG
+KEYWORD = input("Nhập từ khóa tìm kiếm trên Tiki: ").strip()
+MAX_PAGE = 50
 
-# ================== CẤU HÌNH
-keyword = input("Nhập từ khóa tìm kiếm trên Tiki: ")
-keyword_normalized = normalize(keyword)  # Normalize for matching
-csv_name = r"C:\Users\letan\Downloads\SEG301\price_spider\data\crawl_tiki.csv"
-MAX_PAGE = 40  # Số page thử nghiệm, có thể tăng
+OUTPUT_FILE = r"C:\Users\letan\Downloads\SEG301\price_spider\data\tiki_products.jsonl"
 
-# ================== ĐỌC CSV CŨ (nếu có)
-done_titles = set()
-done_titles_normalized = set()  # Store normalized titles for matching
-if os.path.exists(csv_name):
-    df_existing = pd.read_csv(csv_name)
-    if 'product_name' in df_existing.columns:
-        done_titles = set(df_existing['product_name'].dropna())
-        # Also normalize existing titles for better matching
-        done_titles_normalized = set(normalize(title) for title in done_titles if title)
+# ================== LOAD EXISTING IDS (JSONL)
+def load_existing_ids():
+    ids = set()
+    if not os.path.exists(OUTPUT_FILE):
+        return ids
 
-total_items = len(done_titles)
-print(f"Đang crawl sản phẩm trên Tiki cho từ khóa: {keyword}")
-print(f"Từ khóa normalize: {keyword_normalized}")
+    with open(OUTPUT_FILE, "r", encoding="utf-8") as f:
+        for line in f:
+            try:
+                obj = json.loads(line)
+                if "product_id" in obj:
+                    ids.add(str(obj["product_id"]))
+            except:
+                pass
+    return ids
 
-# Fake headers giống trình duyệt
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
-    "Accept": "application/json, text/javascript, */*; q=0.01",
-    "Referer": f"https://tiki.vn/search?q={keyword_normalized}"
-}
+# ================== ASYNC FETCH
+SEM = asyncio.Semaphore(10)
 
-# Schema chuẩn 10 cột (bỏ location)
-COLUMNS = [
-    "platform",
-    "product_name",
-    "price",
-    "original_price",
-    "discount_percent",
-    "product_url",
-    "image_url",
-    "rating",
-    "review_count",
-    "category"
-]
-
-for page in range(1, MAX_PAGE+1):
-    url = f"https://tiki.vn/api/v2/products?limit=40&q={keyword_normalized}&page={page}"
+async def fetch_page(session, page):
+    url = f"https://tiki.vn/api/v2/products?limit=60&q={KEYWORD}&page={page}"
     try:
-        resp = requests.get(url, headers=headers, timeout=10)
-        if resp.status_code != 200:
-            print(f"Page {page} | Lỗi status: {resp.status_code}")
-            break
+        async with SEM:
+            async with session.get(url, timeout=10) as resp:
+                if resp.status != 200:
+                    return page, []
+                data = await resp.json()
+                return page, data.get("data", [])
+    except Exception:
+        return page, []
 
-        data = resp.json()
-        products = data.get('data', [])
-        if not products:
-            print("Hết sản phẩm hoặc không còn page mới.")
-            break
+# ================== MAIN CRAWLER
+async def crawl():
+    seen_ids = load_existing_ids()
+    existing_count = len(seen_ids)
 
-        page_result = []
+    new_saved = 0
+    total_crawled = 0
 
-        for item in products:
-            title = item.get('name', '').strip()
-            if not title:
-                continue
-            
-            # Normalize title for matching with existing data
-            title_normalized = normalize(title)
-            if title_normalized in done_titles_normalized:
-                continue
+    async with aiohttp.ClientSession() as session:
+        with open(OUTPUT_FILE, "a", encoding="utf-8") as f:
+            tasks = [fetch_page(session, p) for p in range(1, MAX_PAGE + 1)]
 
-            price = item.get('price', None)
-            original_price = item.get('original_price', None)  # key mới
-            discount_percent = round((original_price - price)/original_price*100) if original_price else 0
-            product_url = "https://tiki.vn/" + item.get('url_path', '')  # key mới
-            image_url = item.get('thumbnail_url', None)
-            rating = item.get('rating_average', 0)  # key mới
-            review_count = item.get('review_count', 0)
-            category = item['categories'][0]['name'] if item.get('categories') else keyword
+            for future in asyncio.as_completed(tasks):
+                page, products = await future
 
-            page_result.append({
-                "platform": "Tiki",
-                "product_name": title,
-                "price": price,
-                "original_price": original_price,
-                "discount_percent": discount_percent,
-                "product_url": product_url,
-                "image_url": image_url,
-                "rating": rating,
-                "review_count": review_count,
-                "category": category
-            })
+                if not products:
+                    continue
 
-            done_titles.add(title)
-            done_titles_normalized.add(title_normalized)
-            total_items += 1
+                for item in products:
+                    total_crawled += 1
 
-            # Delay ngắn để tránh block
-            time.sleep(random.uniform(0.2, 0.5))
+                    product_id = item.get("id")
+                    if not product_id or str(product_id) in seen_ids:
+                        continue
 
-        # Lưu CSV
-        if page_result:
-            df = pd.DataFrame(page_result, columns=COLUMNS)
-            df.to_csv(
-                csv_name,
-                mode='a',
-                header=not os.path.exists(csv_name),
-                index=False,
-                encoding="utf-8-sig",
-                quoting=csv.QUOTE_ALL
-            )
-            print(f"Page {page} | Lưu {len(page_result)} sản phẩm | Tổng: {total_items}")
-        else:
-            print(f"Page {page} | Không có sản phẩm mới")
+                    seen_ids.add(str(product_id))
+                    new_saved += 1
 
-        # Delay giữa các page
-        time.sleep(random.uniform(1, 2))
+                    price = item.get("price", 0)
+                    original_price = item.get("original_price", 0)
 
-    except Exception as e:
-        print(f"Page {page} | Lỗi: {e}")
-        break
+                    discount_percent = (
+                        round((original_price - price) / original_price * 100, 2)
+                        if original_price else 0
+                    )
 
-print(f"Hoàn tất crawl Tiki | Tổng sản phẩm: {total_items}")
+                    record = {
+                        "platform": "Tiki",
+                        "product_id": str(product_id),
+                        "product_name": item.get("name", "").strip(),
+                        "price": price,
+                        "original_price": original_price,
+                        "discount_percent": discount_percent,
+                        "product_url": "https://tiki.vn/" + item.get("url_path", ""),
+                        "image_url": item.get("thumbnail_url"),
+                        "rating": item.get("rating_average", 0),
+                        "review_count": item.get("review_count", 0),
+                        "category": KEYWORD
+                    }
+
+                    # ✅ ghi JSONL
+                    f.write(json.dumps(record, ensure_ascii=False) + "\n")
+                    f.flush()
+
+                    print(
+                        f"[PAGE {page}] "
+                        f"🆕 Lưu mới: {new_saved} | "
+                        f"📥 Crawl: {total_crawled} | "
+                        f"📦 Tổng file: {existing_count + new_saved}",
+                        end="\r"
+                    )
+
+    print(
+        f"\n🎉 Hoàn tất!"
+        f"\n- Lưu mới: {new_saved}"
+        f"\n- Tổng crawl: {total_crawled}"
+        f"\n- Tổng file: {existing_count + new_saved}"
+    )
+
+# ================== RUN
+asyncio.run(crawl())

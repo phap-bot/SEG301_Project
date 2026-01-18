@@ -1,15 +1,13 @@
-import asyncio
-import random
-import os
-from playwright.async_api import async_playwright
+"""
+Tiki Spider - Sử dụng BaseSpider
+"""
+from crawler.spider import BaseSpider
+from crawler.parser import (
+    extract_text, extract_image_url, extract_product_url, parse_price, clean_text,
+    extract_rating, extract_review_count, extract_original_price, calculate_discount_percent,
+    extract_product_id_from_url, extract_category
+)
 
-try:
-    from playwright_stealth import stealth_async
-except ImportError:
-    async def stealth_async(page):
-        pass
-
-# Ensure entity resolution is imported correctly regardless of run context
 try:
     from crawler.entity_resolution import normalize_text
 except ImportError:
@@ -18,131 +16,100 @@ except ImportError:
     except ImportError:
         def normalize_text(t): return t.lower()
 
-class TikiScraper:
-    def __init__(self, headless=True):
-        self.headless = headless
 
-    async def scrape_keyword(self, keyword, max_pages=50):
-        print(f"🚀 [Tiki] Starting scrape for '{keyword}'...")
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=self.headless)
-            context = await browser.new_context(
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                viewport={"width": 1280, "height": 800}
-            )
-            
-            page = await context.new_page()
-            await stealth_async(page)
-            
-            all_products = []
-
-            for page_num in range(1, max_pages + 1):
-                url = f"https://tiki.vn/search?q={keyword}&page={page_num}"
-                print(f"📄 [Tiki] Navigating to Page {page_num}: {url}")
-                
-                try:
-                    await page.goto(url, wait_until="domcontentloaded", timeout=30000)
-                    await asyncio.sleep(random.uniform(2, 4))
-                    
-                    # Scroll to trigger lazy loading
-                    await self.scroll_to_bottom(page)
-                    
-                    # Tiki product cards usually have class `product-item`
-                    # We look for 'a.product-item'
-                    product_elements = await page.locator('a.product-item').all()
-                    
-                    print(f"🔍 [Tiki] Found {len(product_elements)} items on page {page_num}")
-
-                    for item in product_elements:
-                        try:
-                            # Extract basic info
-                            # Tiki text is often in:
-                            # name: .name >span or h3 or div
-                            # price: .price-discount__price
-                            # img: .thumbnail img or just img
-                            
-                            # Note: Tiki DOM changes, we try to be robust
-                            
-                            # Name
-                            name_el = item.locator('.style__Name-sc-139nb47-3, .product-name, h3, div[class*="name"]') 
-                            if await name_el.count() > 0:
-                                name = await name_el.first.inner_text()
-                            else:
-                                # Fallback: get text from the link itself but might contain price
-                                name = await item.inner_text()
-                                name = name.split('\n')[0]
-
-                            # Price
-                            price_el = item.locator('.price-discount__price, .price-discount, .product-price')
-                            if await price_el.count() > 0:
-                                price_text = await price_el.first.inner_text()
-                            else:
-                                price_text = "0"
-                            
-                            # Clean price
-                            import re
-                            price_clean = re.sub(r'[^\d]', '', price_text)
-                            price = float(price_clean) if price_clean else 0.0
-
-                            # URL
-                            link = await item.get_attribute("href")
-                            if link and link.startswith("//"):
-                                link = "https:" + link
-                            if link and link.startswith("/"):
-                                link = "https://tiki.vn" + link
-
-                            # Image
-                            img_el = item.locator('img')
-                            # Try webp / srcset first if available, or src
-                            img = await img_el.first.get_attribute("src")
-                            
-                            # High res logic if needed (Tiki often uses thumbnails)
-                            # Tiki images: https://salt.tikicdn.com/cache/280x280/ts/product/...
-                            if img and "cache" in img:
-                                # Try to remove cache part to get original? 
-                                # Actually Tiki CDN structure is complex, usually 280x280 is decent for listing
-                                pass
-                                
-                            all_products.append({
-                                "source": "Tiki",
-                                "name": name,
-                                "price": price,
-                                "url": link,
-                                "image": img,
-                                "normalized_name": normalize_text(name)
-                            })
-                            
-                        except Exception as e:
-                            continue
-                            
-                except Exception as e:
-                    print(f"⚠️ [Tiki] Error on page {page_num}: {e}")
-            
-            await browser.close()
-            return all_products
-
-    async def scroll_to_bottom(self, page):
-        for _ in range(4):
-            await page.mouse.wheel(0, 1000)
-            await asyncio.sleep(1)
-        # Check if "Load More" exists? Tiki usually pagination.
+class TikiSpider(BaseSpider):
+    """Tiki crawler sử dụng BaseSpider"""
+    
+    def __init__(self, headless=True, use_proxy=False):
+        super().__init__(
+            source_name="Tiki",
+            base_url="https://tiki.vn",
+            headless=headless,
+            use_proxy=use_proxy
+        )
+    
+    def build_search_url(self, keyword: str, page: int = 50) -> str:
+        """Build Tiki search URL"""
+        return f"https://tiki.vn/search?q={keyword}&page={page}"
+    
+    def get_product_selector(self) -> str:
+        """Tiki product selector"""
+        return 'a.product-item'
+    
+    async def parse_product(self, item_locator) -> dict:
+        """Parse Tiki product item với format JSON chuẩn"""
+        # Name - thử nhiều selector
+        name = ""
+        name_selectors = [
+            '.style__Name-sc-139nb47-3',
+            '.product-name',
+            'h3',
+            'div[class*="name"]'
+        ]
+        
+        for selector in name_selectors:
+            name_el = item_locator.locator(selector)
+            name = await extract_text(name_el)
+            if name:
+                break
+        
+        if not name:
+            # Fallback: lấy text từ item và lấy dòng đầu
+            full_text = await extract_text(item_locator)
+            name = full_text.split('\n')[0] if full_text else ""
+        
+        if not name:
+            return None
+        
+        name = clean_text(name)
+        
+        # Price (giá hiện tại)
+        price_el = item_locator.locator('.price-discount__price, .price-discount, .product-price')
+        price_text = await extract_text(price_el, "0")
+        price = parse_price(price_text)
+        
+        # Original price (giá gốc)
+        original_price = await extract_original_price(item_locator)
+        
+        # Discount percent
+        discount_percent = calculate_discount_percent(original_price, price) if original_price > 0 else 0.0
+        
+        # URL
+        url = await extract_product_url(item_locator, self.base_url)
+        
+        # Product ID từ URL
+        product_id = extract_product_id_from_url(url)
+        
+        # Image
+        image_url = await extract_image_url(item_locator, self.base_url)
+        
+        # Rating
+        rating = await extract_rating(item_locator)
+        
+        # Review count
+        review_count = await extract_review_count(item_locator)
+        
+        # Category
+        category = await extract_category(item_locator)
+        
+        return {
+            "platform": "Tiki",
+            "product_id": product_id if product_id else "",
+            "product_name": name if name else "",
+            "price": price if price > 0 else 0.0,
+            "original_price": original_price if original_price > 0 else 0.0,
+            "discount_percent": discount_percent if discount_percent > 0 else 0.0,
+            "product_url": url if url else "",
+            "image_url": image_url if image_url else "",
+            "rating": rating if rating > 0 else 0.0,
+            "review_count": review_count if review_count > 0 else 0,
+            "category": category if category else ""
+        }
 
 
-def search(keyword):
-    """
-    Sync wrapper for main.py integration
-    """
-    scraper = TikiScraper(headless=True)
-    try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-             return loop.run_until_complete(scraper.scrape_keyword(keyword))
-        else:
-             return loop.run_until_complete(scraper.scrape_keyword(keyword))
-    except RuntimeError:
-         return asyncio.run(scraper.scrape_keyword(keyword))
-
-if __name__ == "__main__":
-    asyncio.run(main())
+def search(keyword, max_pages=50):
+    """Sync wrapper for main.py integration"""
+    spider = TikiSpider(headless=True)
+    return spider.run_sync(keyword, max_pages=max_pages)
 
 
