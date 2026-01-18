@@ -62,7 +62,27 @@
 - Đảm bảo code submission đúng format cho giáo viên
 - Dễ dàng tích hợp code từ nhiều thành viên
 - Clear attribution và credits
-
+  Tôi: Yêu cầu lấy chính xác số lượng đánh giá (
+review_count
+  cho các sản phẩm (ví dụ dòng "Alpha Works" bị mất 0 đánh giá). Chấp nhận tốc độ chậm hơn (khoảng 10x) để crawler vào từng trang chi tiết lấy dữ liệu chuẩn (Deep Crawl).
+Tôi: Đã triển khai kiến trúc "Concurrent Deep Crawl" (Geometric).
+Giải pháp: Crawler quét nhanh Listing để lấy link -> Dùng cơ chế bất đồng bộ (asyncio) mở song song 8 tab trình duyệt (Semaphore=8) để vào từng trang chi tiết lấy dữ liệu.
+Dự phòng: Nếu trang chi tiết lỗi hoặc không có review, tự động fallback sang lấy số lượng "khách hài lòng" từ Listing.
+2. Tối ưu nhập liệu (Multi-Keyword)
+Tôi: Muốn nhập được nhiều từ khóa sản phẩm cùng một lúc (ngăn cách bởi dấu phẩy) để đỡ phải chạy lại tool nhiều lần.
+AI: Đã nâng cấp file 
+crawl_dienmayxanh.py
+.
+Cơ chế: Tự động tách chuỗi input (ví dụ: loa, tivi, máy giặt) thành danh sách -> Chạy vòng lặp xử lý tuần tự từng từ khóa -> Tự động khởi tạo và đóng trình duyệt sạch sẽ cho mỗi phiên.
+3. Đảm bảo toàn vẹn dữ liệu (No Duplicates)
+Tôi: Yêu cầu chắc chắn rằng dữ liệu lưu vào file JSONL không bị trùng lặp và kiểm tra lại file hiện tại xem có bị trùng không.
+AI:
+Kiểm tra: Đã viết script 
+verify_data_integrity.py
+ để quét toàn bộ file dữ liệu. Kết quả xác nhận: 0 dòng trùng lặp.
+Cơ chế bảo vệ: Trong code crawler đã có logic tạo mã Hash MD5 duy nhất từ 
+(Nền tảng + Tên sản phẩm + URL)
+. Trước khi lưu bất kỳ dòng nào, tool đều kiểm tra mã này đã tồn tại hay chưa.
 ## 2026-01-13
 
 ### Hau – Tiki Crawling Troubleshooting
@@ -88,6 +108,8 @@
 **Impact:** **High**  
 - Crawl dữ liệu ổn định hơn so với Selenium, giảm nguy cơ bị bot detection
 - Dữ liệu nhận về dạng JSON có cấu trúc, giảm chi phí xử lý hậu kỳ
+
+
 
 ---
 
