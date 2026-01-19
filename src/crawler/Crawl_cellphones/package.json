@@ -1,0 +1,22 @@
+{
+    "name": "cellphones-crawler",
+    "version": "1.0.0",
+    "description": "CellphoneS GraphQL API Crawler - Crawl sản phẩm từ CellphoneS.com.vn",
+    "main": "crawl_cellphones.js",
+    "type": "module",
+    "scripts": {
+        "start": "node crawl_cellphones.js",
+        "test": "node test_api.js"
+    },
+    "keywords": [
+        "crawler",
+        "cellphones",
+        "graphql",
+        "ecommerce"
+    ],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "node-fetch": "^3.3.2"
+    }
+}
