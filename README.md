@@ -2,7 +2,7 @@
 # SEG301 E-Commerce Search Engine Project
 
 ## 1. Team Information
-**Group:** Group Tiki
+**Group:** 
 
 | Name | Student ID | Role | Contribution | 
 |------|-----------|------|--------------|
