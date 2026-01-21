@@ -3,25 +3,23 @@
 This folder contains sample data for testing purposes only.
 
 ## Files
-- `lazada_sample.jsonl`: 100 sample products from Lazada
-
-## Full Dataset
-The complete dataset (~1M products, 500MB) is available on Google Drive:
-📥 [Download Full Dataset](https://drive.google.com/...)
+- `tiki_sample.jsonl`: 300 sample products from Lazada
 
 ## Format
 Each line is a JSON object with the following structure:
 ```json
 {
-  "platform": "lazada",
+  "platform": "tiki",
   "product_id": "123456",
   "name": "Product Name",
   "price": 1000000,
   "original_price": 1500000,
   "discount": 33,
   "url": "https://lazada.vn/...",
+  "image_url": "https://salt.tikicdn.com/cache/280x280/ts/product/f0/78/28/d9ea6dbfdd58e0ca1c3d75476aab47c8.jpg,
   "rating": 4.5,
   "reviews": 120
+  "category": "Máy lọc không khí"
 }
 ```
 
