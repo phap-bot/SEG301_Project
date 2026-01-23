@@ -84,7 +84,46 @@ verify_data_integrity.py
 Cơ chế bảo vệ: Trong code crawler đã có logic tạo mã Hash MD5 duy nhất từ 
 (Nền tảng + Tên sản phẩm + URL)
 . Trước khi lưu bất kỳ dòng nào, tool đều kiểm tra mã này đã tồn tại hay chưa.
-## 2026-01-13
+
+crawl_dienmayxanh.py
+ hãy theo formart của điện máy xanh crawl dùng browser ẩn tạo headles để tự động login để lấy chuẩn thông tin 
+
+Thought for 5s
+
+
+Analyzed
+crawl_dienmayxanh.py#L1-208
+Refactoring FPTShop Crawler to Playwright
+Confirmed existence of crawler framework. Preparing implementation plan to create crawler/fptshop_search.py and rewrite 
+fptshop_crawl.py
+ to use the new spider class.
+
+Files Edited
+Implementation Plan
+Task
+Progress Updates
+1
+Reading DienMayXanh crawler for reference
+
+2
+Reading DienMayXanh spider class logic
+
+3
+Checking crawler framework availability
+
+4
+Creating implementation plan for Playwright migration
+
+I have prepared the plan to refactor fptshop_crawl.py to use Playwright, mirroring the crawl_dienmayxanh.py structure.
+
+This involves:
+
+Creating crawler/fptshop_search.py (The Spider Class) to handle headless browsing, selectors, and consistent data extraction.
+Rewriting fptshop_crawl.py (The Runner) to use this new Spider class.
+I will proceed with creating the Spider class first.
+
+implementation_plan.md
+Op
 
 ### Hau – Tiki Crawling Troubleshooting
 ## Date: 2026-01-21
