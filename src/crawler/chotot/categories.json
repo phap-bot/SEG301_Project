@@ -1,0 +1,3291 @@
+{
+  "1000": {
+    "id": "1000",
+    "name": "Bất động sản - Mua bán",
+    "name_url": "mua-ban-bat-dong-san",
+    "type": "mua-ban-",
+    "param_type": "w",
+    "feature": {
+      "is_new": false
+    },
+    "subCategories": {
+      "entities": {
+        "1010": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "u": "Thuê"
+            },
+            {
+              "k": "Bán"
+            },
+            {
+              "h": "Cho Thuê"
+            }
+          ],
+          "name": "Căn hộ/Chung cư",
+          "parent": "1000",
+          "filter": "true",
+          "id": "1010",
+          "types": [
+            {
+              "s": "Cần bán"
+            },
+            {
+              "u": "Cho thuê"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "mua-ban-can-ho-chung-cu",
+          "param_type": "w"
+        },
+        "1020": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "u": "Thuê"
+            },
+            {
+              "k": "Bán"
+            },
+            {
+              "h": "Cho Thuê"
+            }
+          ],
+          "name": "Nhà ở",
+          "parent": "1000",
+          "filter": "true",
+          "id": "1020",
+          "types": [
+            {
+              "s": "Cần bán"
+            },
+            {
+              "u": "Cho thuê"
+            }
+          ],
+          "friendly_name": "nha-dat",
+          "giveaway": false,
+          "name_url": "mua-ban-nha-dat",
+          "param_type": "w"
+        },
+        "1030": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "u": "Thuê"
+            },
+            {
+              "k": "Bán"
+            },
+            {
+              "h": "Cho Thuê"
+            }
+          ],
+          "name": "Văn phòng, Mặt bằng kinh doanh",
+          "parent": "1000",
+          "filter": "true",
+          "id": "1030",
+          "types": [
+            {
+              "s": "Cần bán"
+            },
+            {
+              "u": "Cho thuê"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "sang-nhuong-van-phong-mat-bang-kinh-doanh",
+          "param_type": "w"
+        },
+        "1040": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "u": "Thuê"
+            },
+            {
+              "k": "Bán"
+            },
+            {
+              "h": "Cho Thuê"
+            }
+          ],
+          "name": "Đất",
+          "parent": "1000",
+          "filter": "true",
+          "id": "1040",
+          "types": [
+            {
+              "s": "Cần bán"
+            },
+            {
+              "u": "Cho thuê"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "mua-ban-dat",
+          "param_type": "w"
+        },
+        "1050": {
+          "filter_types": [
+            {
+              "u": "Thuê"
+            },
+            {
+              "h": "Cho Thuê"
+            }
+          ],
+          "name": "Phòng trọ",
+          "parent": "1000",
+          "filter": "true",
+          "id": "1050",
+          "types": [
+            {
+              "u": "Cho thuê"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "thue-phong-tro",
+          "param_type": "w"
+        },
+        "1060": {
+          "filter_types": [
+            {
+              "s": "Sang nhượng"
+            }
+          ],
+          "name": "Sang nhượng cửa hàng, Kiosk",
+          "parent": "1000",
+          "filter": "true",
+          "id": "1060",
+          "types": [
+            {
+              "s": "Sang nhượng"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "sang-nhuong-cua-hang-kiosk",
+          "param_type": "w"
+        },
+        "1070": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "u": "Thuê"
+            },
+            {
+              "k": "Bán"
+            },
+            {
+              "h": "Cho Thuê"
+            }
+          ],
+          "name": "Kho, Nhà xưởng, Đất công nghiệp",
+          "parent": "1000",
+          "filter": "true",
+          "id": "1070",
+          "types": [
+            {
+              "s": "Cần bán"
+            },
+            {
+              "u": "Cho thuê"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "kho-nha-xuong-dat-cong-nghiep",
+          "param_type": "w"
+        },
+        "1080": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "u": "Thuê"
+            },
+            {
+              "k": "Bán"
+            },
+            {
+              "h": "Cho Thuê"
+            }
+          ],
+          "name": "Nhà nghỉ, Homestay, Khách sạn",
+          "parent": "1000",
+          "filter": "true",
+          "id": "1080",
+          "types": [
+            {
+              "s": "Cần bán"
+            },
+            {
+              "u": "Cho thuê"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "nha-nghi-homestay-khach-san",
+          "param_type": "w"
+        }
+      },
+      "orderList": [
+        "1010",
+        "1020",
+        "1040",
+        "1030",
+        "1060",
+        "1070",
+        "1080"
+      ]
+    }
+  },
+  "2000": {
+    "id": "2000",
+    "name": "Xe cộ",
+    "name_url": "mua-ban-xe",
+    "type": "mua-ban-",
+    "param_type": "w",
+    "feature": {
+      "is_new": false
+    },
+    "subCategories": {
+      "entities": {
+        "2010": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Ô tô",
+          "parent": "2000",
+          "filter": "true",
+          "id": "2010",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "mua-ban-o-to",
+          "param_type": "w"
+        },
+        "2020": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Xe máy",
+          "parent": "2000",
+          "filter": "true",
+          "id": "2020",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "mua-ban-xe-may",
+          "param_type": "w"
+        },
+        "2030": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Phụ tùng xe",
+          "parent": "2000",
+          "filter": "true",
+          "id": "2030",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-phu-tung-xe",
+          "param_type": "w"
+        },
+        "2050": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Xe tải, xe ben",
+          "parent": "2000",
+          "filter": "true",
+          "id": "2050",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "mua-ban-xe-tai-xe-ben",
+          "param_type": "w"
+        },
+        "2060": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Xe đạp",
+          "parent": "2000",
+          "filter": "true",
+          "id": "2060",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-xe-dap",
+          "param_type": "w"
+        },
+        "2080": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Phương tiện khác",
+          "parent": "2000",
+          "filter": "true",
+          "id": "2080",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "mua-ban-phuong-tien-khac",
+          "param_type": "w"
+        },
+        "2090": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Xe điện",
+          "parent": "2000",
+          "filter": "true",
+          "id": "2090",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-xe-dien",
+          "param_type": "w"
+        },
+        "2100": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Tàu, Thuyền, Cano",
+          "parent": "2000",
+          "filter": "true",
+          "id": "2100",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-tau-thuyen-cano",
+          "param_type": "w"
+        },
+        "2110": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Xe máy điện",
+          "parent": "2000",
+          "filter": "true",
+          "id": "2110",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-xe-may-dien",
+          "param_type": "w"
+        },
+        "2120": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Máy cày, Máy nông nghiệp",
+          "parent": "2000",
+          "filter": "true",
+          "id": "2120",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "mua-ban-may-cay-may-nong-nghiep",
+          "param_type": "w"
+        }
+      },
+      "orderList": [
+        "2010",
+        "2020",
+        "2050",
+        "2090",
+        "2060",
+        "2080",
+        "2030",
+        "2100",
+        "2110",
+        "2120"
+      ]
+    }
+  },
+  "3000": {
+    "id": "3000",
+    "name": "Thời trang, Đồ dùng cá nhân",
+    "name_url": "mua-ban-thoi-trang-do-dung-ca-nhan",
+    "type": "mua-ban-",
+    "param_type": "w",
+    "feature": {
+      "is_new": false
+    },
+    "subCategories": {
+      "entities": {
+        "3030": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Quần áo",
+          "parent": "3000",
+          "filter": "true",
+          "id": "3030",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-quan-ao",
+          "param_type": "w"
+        },
+        "3050": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Đồng hồ",
+          "parent": "3000",
+          "filter": "true",
+          "id": "3050",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-dong-ho",
+          "param_type": "w"
+        },
+        "3060": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Giày dép",
+          "parent": "3000",
+          "filter": "true",
+          "id": "3060",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-giay-dep",
+          "param_type": "w"
+        },
+        "3070": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Túi xách",
+          "parent": "3000",
+          "filter": "true",
+          "id": "3070",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-tui-xach",
+          "param_type": "w"
+        },
+        "3080": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Nước hoa",
+          "parent": "3000",
+          "filter": "true",
+          "id": "3080",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-nuoc-hoa",
+          "param_type": "w"
+        },
+        "3090": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Phụ kiện thời trang khác",
+          "parent": "3000",
+          "filter": "true",
+          "id": "3090",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-phu-kien-thoi-trang-khac",
+          "param_type": "w"
+        },
+        "3100": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Trang sức, Nữ trang",
+          "parent": "3000",
+          "filter": "true",
+          "id": "3100",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-trang-suc-nu-trang",
+          "param_type": "w"
+        },
+        "3110": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Kính mắt, Gọng kính",
+          "parent": "3000",
+          "filter": "true",
+          "id": "3110",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-kinh-mat",
+          "param_type": "w"
+        },
+        "3120": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Thắt lưng, Dây nịt",
+          "parent": "3000",
+          "filter": "true",
+          "id": "3120",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-that-lung",
+          "param_type": "w"
+        },
+        "3130": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Vali, Balo du lịch",
+          "parent": "3000",
+          "filter": "true",
+          "id": "3130",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-vali-balo",
+          "param_type": "w"
+        },
+        "3140": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Vải, Phụ kiện may mặc",
+          "parent": "3000",
+          "filter": "true",
+          "id": "3140",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-vai-phu-kien-may-mac",
+          "param_type": "w"
+        },
+        "3150": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Mỹ phẩm, Dụng cụ làm đẹp",
+          "parent": "3000",
+          "filter": "true",
+          "id": "3150",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-my-pham-dung-cu-lam-dep",
+          "param_type": "w"
+        }
+      },
+      "orderList": [
+        "3030",
+        "3050",
+        "3060",
+        "3070",
+        "3080",
+        "3090",
+        "3100",
+        "3110",
+        "3120",
+        "3130",
+        "3140",
+        "3150"
+      ]
+    }
+  },
+  "4000": {
+    "id": "4000",
+    "name": "Giải trí, Thể thao, Sở thích",
+    "name_url": "mua-ban-giai-tri-the-thao-so-thich",
+    "type": "mua-ban-",
+    "param_type": "w",
+    "feature": {
+      "is_new": false
+    },
+    "subCategories": {
+      "entities": {
+        "4010": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Đồ sưu tầm, đồ cổ",
+          "parent": "4000",
+          "filter": "true",
+          "id": "4010",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-do-suu-tam-do-co",
+          "param_type": "w"
+        },
+        "4020": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Đồ thể thao, Dã ngoại",
+          "parent": "4000",
+          "filter": "true",
+          "id": "4020",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-do-the-thao-da-ngoai",
+          "param_type": "w"
+        },
+        "4040": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Nhạc cụ",
+          "parent": "4000",
+          "filter": "true",
+          "id": "4040",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-nhac-cu",
+          "param_type": "w"
+        },
+        "4050": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Thiết bị chơi game",
+          "parent": "4000",
+          "filter": "true",
+          "id": "4050",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-thiet-bi-choi-game",
+          "param_type": "w"
+        },
+        "4060": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Sở thích khác",
+          "parent": "4000",
+          "filter": "true",
+          "id": "4060",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-so-thich-khac",
+          "param_type": "w"
+        },
+        "4070": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Sách",
+          "parent": "4000",
+          "filter": "true",
+          "id": "4070",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-sach",
+          "param_type": "w"
+        },
+        "4080": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Cây cảnh, Hạt giống, Thủy sinh",
+          "parent": "4000",
+          "filter": "true",
+          "id": "4080",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-cay-canh-thuy-sinh",
+          "param_type": "w"
+        },
+        "4100": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Dụng cụ tập Gym, Yoga",
+          "parent": "4000",
+          "filter": "true",
+          "id": "4100",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-dung-cu-gym-yoga",
+          "param_type": "w"
+        },
+        "4110": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Bóng đá, Giày đá bóng, Phụ kiện",
+          "parent": "4000",
+          "filter": "true",
+          "id": "4110",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-bong-da-phu-kien",
+          "param_type": "w"
+        },
+        "4120": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Cần câu, Đồ câu cá",
+          "parent": "4000",
+          "filter": "true",
+          "id": "4120",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-do-cau-ca",
+          "param_type": "w"
+        },
+        "4130": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Tennis, Cầu lông, Bóng bàn",
+          "parent": "4000",
+          "filter": "true",
+          "id": "4130",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-vot-cac-loai",
+          "param_type": "w"
+        },
+        "4140": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Nhạc cụ dân tộc, Trống, Kèn",
+          "parent": "4000",
+          "filter": "true",
+          "id": "4140",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-nhac-cu-khac",
+          "param_type": "w"
+        }
+      },
+      "orderList": [
+        "4040",
+        "4070",
+        "4020",
+        "4010",
+        "4050",
+        "4060",
+        "4080",
+        "4100",
+        "4110",
+        "4120",
+        "4130",
+        "4140"
+      ]
+    }
+  },
+  "5000": {
+    "id": "5000",
+    "name": "Đồ điện tử",
+    "name_url": "mua-ban-do-dien-tu",
+    "type": "mua-ban-",
+    "param_type": "w",
+    "feature": {
+      "is_new": false
+    },
+    "subCategories": {
+      "entities": {
+        "5010": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Điện thoại",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5010",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-dien-thoai",
+          "param_type": "w"
+        },
+        "5020": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Tivi, Âm thanh",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5020",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-tivi-am-thanh",
+          "param_type": "w"
+        },
+        "5030": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Laptop",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5030",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-laptop",
+          "param_type": "w"
+        },
+        "5040": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Máy tính bảng",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5040",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-may-tinh-bang",
+          "param_type": "w"
+        },
+        "5050": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Máy ảnh, Máy quay",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5050",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-may-anh-may-quay",
+          "param_type": "w"
+        },
+        "5060": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Phụ kiện (Màn hình, Chuột...)",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5060",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "friendly_name": "phu-kien",
+          "giveaway": true,
+          "name_url": "mua-ban-phu-kien",
+          "param_type": "w"
+        },
+        "5070": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Máy tính để bàn",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5070",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-may-tinh-de-ban",
+          "param_type": "w"
+        },
+        "5080": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Linh kiện (RAM, Card...)",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5080",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "friendly_name": "linh-kien",
+          "giveaway": true,
+          "name_url": "mua-ban-linh-kien",
+          "param_type": "w"
+        },
+        "5090": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Thiết bị đeo thông minh",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5090",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-thiet-bi-deo-thong-minh",
+          "param_type": "w"
+        },
+        "5100": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Tai nghe",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5100",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-tai-nghe",
+          "param_type": "w"
+        },
+        "5110": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Loa, Thiết bị âm thanh",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5110",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-loa-thiet-bi-am-thanh",
+          "param_type": "w"
+        },
+        "5120": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Thiết bị nhà thông minh",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5120",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-thiet-bi-nha-thong-minh",
+          "param_type": "w"
+        },
+        "5130": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Máy nghe nhạc, iPod",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5130",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-may-nghe-nhac",
+          "param_type": "w"
+        },
+        "5140": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Phụ kiện máy tính, Laptop",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5140",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-phu-kien-may-tinh",
+          "param_type": "w"
+        },
+        "5150": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Sim số đẹp",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5150",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "mua-ban-sim-so-dep",
+          "param_type": "w"
+        },
+        "5160": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Máy chiếu, Màn chiếu",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5160",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-may-chieu",
+          "param_type": "w"
+        },
+        "5170": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Thiết bị định vị, Camera hành trình",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5170",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-camera-hanh-trinh",
+          "param_type": "w"
+        },
+        "5180": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Máy chơi game Console",
+          "parent": "5000",
+          "filter": "true",
+          "id": "5180",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-may-choi-game-console",
+          "param_type": "w"
+        }
+      },
+      "orderList": [
+        "5010",
+        "5040",
+        "5030",
+        "5070",
+        "5050",
+        "5020",
+        "5090",
+        "5060",
+        "5080",
+        "5100",
+        "5110",
+        "5120",
+        "5130",
+        "5140",
+        "5150",
+        "5160",
+        "5170",
+        "5180"
+      ]
+    }
+  },
+  "6000": {
+    "id": "6000",
+    "name": "Dịch vụ, Du lịch",
+    "name_url": "dich-vu-du-lich",
+    "param_type": "w",
+    "feature": {
+      "is_new": false
+    },
+    "subCategories": {
+      "entities": {
+        "6020": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Dịch vụ",
+          "parent": "6000",
+          "filter": "false",
+          "id": "6020",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "dich-vu",
+          "param_type": "w"
+        },
+        "6030": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Du lịch",
+          "parent": "6000",
+          "filter": "false",
+          "id": "6030",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "du-lich",
+          "param_type": "w"
+        },
+        "6040": {
+          "filter_types": [
+            {
+              "s": "Dịch vụ"
+            }
+          ],
+          "name": "Thi công, Xây dựng nhà cửa",
+          "parent": "6000",
+          "filter": "false",
+          "id": "6040",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "dich-vu-thi-cong-xay-dung",
+          "param_type": "w"
+        },
+        "6050": {
+          "filter_types": [
+            {
+              "s": "Dịch vụ"
+            }
+          ],
+          "name": "Sửa chữa điện lạnh, điện gia dụng",
+          "parent": "6000",
+          "filter": "false",
+          "id": "6050",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "dich-vu-sua-chua-dien-lanh",
+          "param_type": "w"
+        },
+        "6060": {
+          "filter_types": [
+            {
+              "s": "Dịch vụ"
+            }
+          ],
+          "name": "Vận tải, Chuyển nhà trọn gói",
+          "parent": "6000",
+          "filter": "false",
+          "id": "6060",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "dich-vu-van-tai-chuyen-nha",
+          "param_type": "w"
+        },
+        "6070": {
+          "filter_types": [
+            {
+              "s": "Dịch vụ"
+            }
+          ],
+          "name": "Vệ sinh công nghiệp, Giặt ủi",
+          "parent": "6000",
+          "filter": "false",
+          "id": "6070",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "dich-vu-ve-sinh-cong-nghiep",
+          "param_type": "w"
+        },
+        "6080": {
+          "filter_types": [
+            {
+              "s": "Dịch vụ"
+            }
+          ],
+          "name": "In ấn, Thiết kế, Quảng cáo",
+          "parent": "6000",
+          "filter": "false",
+          "id": "6080",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "dich-vu-in-an-thiet-ke",
+          "param_type": "w"
+        },
+        "6090": {
+          "filter_types": [
+            {
+              "s": "Dịch vụ"
+            }
+          ],
+          "name": "Tư vấn Luật, Tài chính, Kế toán",
+          "parent": "6000",
+          "filter": "false",
+          "id": "6090",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "dich-vu-tu-van-luat-tai-chinh",
+          "param_type": "w"
+        },
+        "6100": {
+          "filter_types": [
+            {
+              "s": "Dịch vụ"
+            }
+          ],
+          "name": "Dịch vụ Y tế, Chăm sóc sức khỏe",
+          "parent": "6000",
+          "filter": "false",
+          "id": "6100",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "dich-vu-y-te-suc-khoe",
+          "param_type": "w"
+        },
+        "6110": {
+          "filter_types": [
+            {
+              "s": "Dịch vụ"
+            }
+          ],
+          "name": "Dịch vụ Làm đẹp, Spa",
+          "parent": "6000",
+          "filter": "false",
+          "id": "6110",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "dich-vu-lam-dep-spa",
+          "param_type": "w"
+        },
+        "6120": {
+          "filter_types": [
+            {
+              "s": "Dịch vụ"
+            }
+          ],
+          "name": "Tổ chức tiệc, Sự kiện, Cưới hỏi",
+          "parent": "6000",
+          "filter": "false",
+          "id": "6120",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "dich-vu-to-chuc-tiec-su-kien",
+          "param_type": "w"
+        },
+        "6130": {
+          "filter_types": [
+            {
+              "s": "Dịch vụ"
+            }
+          ],
+          "name": "Dịch vụ Thám tử, Bảo vệ",
+          "parent": "6000",
+          "filter": "false",
+          "id": "6130",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "dich-vu-tham-tu-bao-ve",
+          "param_type": "w"
+        },
+        "6140": {
+          "filter_types": [
+            {
+              "s": "Dịch vụ"
+            }
+          ],
+          "name": "Dịch vụ Vệ sinh môi trường",
+          "parent": "6000",
+          "filter": "false",
+          "id": "6140",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "dich-vu-ve-sinh-moi-truong",
+          "param_type": "w"
+        }
+      },
+      "orderList": [
+        "6020",
+        "6030",
+        "6040",
+        "6050",
+        "6060",
+        "6070",
+        "6080",
+        "6090",
+        "6100",
+        "6110",
+        "6120",
+        "6130",
+        "6140"
+      ]
+    }
+  },
+  "7000": {
+    "id": "7000",
+    "name": "Đồ ăn, thực phẩm và các loại khác",
+    "name_url": "mua-ban-do-an-thuc-pham-va-cac-loai-khac",
+    "type": "mua-ban-",
+    "param_type": "w",
+    "feature": {
+      "is_new": false
+    },
+    "subCategories": {
+      "entities": {
+        "7010": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Đồ ăn, thực phẩm và các loại khác",
+          "parent": "7000",
+          "filter": "false",
+          "id": "7010",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "friendly_name": "do-an-thuc-pham",
+          "giveaway": true,
+          "name_url": "mua-ban-do-an-thuc-pham",
+          "param_type": "w"
+        }
+      },
+      "orderList": [
+        "7010"
+      ]
+    }
+  },
+  "8000": {
+    "id": "8000",
+    "name": "Đồ dùng văn phòng, công nông nghiệp",
+    "name_url": "mua-ban-thiet-bi-van-phong-cong-nong-nghiep",
+    "type": "mua-ban-",
+    "param_type": "w",
+    "feature": {
+      "is_new": false
+    },
+    "subCategories": {
+      "entities": {
+        "8010": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Đồ dùng văn phòng",
+          "parent": "8000",
+          "filter": "false",
+          "id": "8010",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-do-dung-van-phong",
+          "param_type": "w"
+        },
+        "8030": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Đồ chuyên dụng, Giống nuôi trồng",
+          "parent": "8000",
+          "filter": "false",
+          "id": "8030",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-do-chuyen-dung-giong-nuoi-trong",
+          "param_type": "w"
+        },
+        "8040": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Máy công cụ, Máy gia công",
+          "parent": "8000",
+          "filter": "false",
+          "id": "8040",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "mua-ban-may-cong-cu",
+          "param_type": "w"
+        },
+        "8050": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Dây chuyền sản xuất",
+          "parent": "8000",
+          "filter": "false",
+          "id": "8050",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "mua-ban-day-chuyen-san-xuat",
+          "param_type": "w"
+        },
+        "8060": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Nguyên vật liệu xây dựng",
+          "parent": "8000",
+          "filter": "false",
+          "id": "8060",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-nguyen-vat-lieu",
+          "param_type": "w"
+        },
+        "8070": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Phế liệu, Tái chế",
+          "parent": "8000",
+          "filter": "false",
+          "id": "8070",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-phe-lieu",
+          "param_type": "w"
+        }
+      },
+      "orderList": [
+        "8010",
+        "8030",
+        "8040",
+        "8050",
+        "8060",
+        "8070"
+      ]
+    }
+  },
+  "9000": {
+    "id": "9000",
+    "name": "Tủ lạnh, máy lạnh, máy giặt",
+    "name_url": "mua-ban-tu-lanh-may-lanh-may-giat",
+    "type": "mua-ban-",
+    "param_type": "w",
+    "feature": {
+      "is_new": false
+    },
+    "subCategories": {
+      "entities": {
+        "9030": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Tủ lạnh",
+          "parent": "9000",
+          "filter": "true",
+          "id": "9030",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-tu-lanh",
+          "param_type": "w"
+        },
+        "9060": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Máy lạnh, điều hoà",
+          "parent": "9000",
+          "filter": "true",
+          "id": "9060",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-may-lanh-dieu-hoa",
+          "param_type": "w"
+        },
+        "9070": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Máy giặt",
+          "parent": "9000",
+          "filter": "true",
+          "id": "9070",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-may-giat",
+          "param_type": "w"
+        },
+        "9080": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Máy lọc nước, Máy nóng lạnh",
+          "parent": "9000",
+          "filter": "true",
+          "id": "9080",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-may-loc-nuoc",
+          "param_type": "w"
+        },
+        "9090": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Máy hút bụi, Robot hút bụi",
+          "parent": "9000",
+          "filter": "true",
+          "id": "9090",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-may-hut-bui",
+          "param_type": "w"
+        },
+        "9100": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Máy sấy, Máy rửa bát",
+          "parent": "9000",
+          "filter": "true",
+          "id": "9100",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-may-say-rua-bat",
+          "param_type": "w"
+        }
+      },
+      "orderList": [
+        "9030",
+        "9060",
+        "9070",
+        "9080",
+        "9090",
+        "9100"
+      ]
+    }
+  },
+  "11000": {
+    "id": "11000",
+    "name": "Mẹ và bé",
+    "name_url": "mua-ban-do-dung-me-va-be",
+    "type": "mua-ban-",
+    "param_type": "w",
+    "feature": {
+      "is_new": false
+    },
+    "subCategories": {
+      "entities": {
+        "11010": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Mẹ và bé",
+          "parent": "11000",
+          "filter": "true",
+          "id": "11010",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "friendly_name": "do-dung-me-va-be",
+          "giveaway": true,
+          "name_url": "mua-ban-do-dung-me-va-be",
+          "param_type": "w"
+        },
+        "11020": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Đồ chơi trẻ em",
+          "parent": "11000",
+          "filter": "true",
+          "id": "11020",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-do-choi-tre-em",
+          "param_type": "w"
+        },
+        "11030": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Xe đẩy, Đai địu",
+          "parent": "11000",
+          "filter": "true",
+          "id": "11030",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-xe-day-dai-diu",
+          "param_type": "w"
+        },
+        "11040": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Sữa, Thực phẩm dinh dưỡng cho bé",
+          "parent": "11000",
+          "filter": "true",
+          "id": "11040",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-sua-thuc-pham-dinh-duong",
+          "param_type": "w"
+        },
+        "11050": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Giường cũi, Nôi, Ghế ăn dặm",
+          "parent": "11000",
+          "filter": "true",
+          "id": "11050",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-giuong-cui-noi-ghe-an-dam",
+          "param_type": "w"
+        },
+        "11060": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Tã, Bỉm, Đồ vệ sinh",
+          "parent": "11000",
+          "filter": "true",
+          "id": "11060",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-ta-bim-do-ve-sinh",
+          "param_type": "w"
+        },
+        "11070": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Quần áo bầu, Đồ dùng cho mẹ",
+          "parent": "11000",
+          "filter": "true",
+          "id": "11070",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-quan-ao-bau-do-dung-cho-me",
+          "param_type": "w"
+        },
+        "11080": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Sách truyện cho bé",
+          "parent": "11000",
+          "filter": "true",
+          "id": "11080",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-sach-truyen-cho-be",
+          "param_type": "w"
+        },
+        "11090": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Dịch vụ trông trẻ",
+          "parent": "11000",
+          "filter": "false",
+          "id": "11090",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "dich-vu-trong-tre",
+          "param_type": "w"
+        }
+      },
+      "orderList": [
+        "11010",
+        "11020",
+        "11030",
+        "11040",
+        "11050",
+        "11060",
+        "11070",
+        "11080",
+        "11090"
+      ]
+    }
+  },
+  "12000": {
+    "id": "12000",
+    "name": "Thú cưng",
+    "name_url": "mua-ban-thu-cung",
+    "type": "mua-ban-",
+    "param_type": "w",
+    "feature": {
+      "is_new": false
+    },
+    "subCategories": {
+      "entities": {
+        "12010": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Gà",
+          "parent": "12000",
+          "filter": "true",
+          "id": "12010",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-ga",
+          "param_type": "w"
+        },
+        "12020": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Chó",
+          "parent": "12000",
+          "filter": "true",
+          "id": "12020",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-cho",
+          "param_type": "w"
+        },
+        "12030": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Chim",
+          "parent": "12000",
+          "filter": "true",
+          "id": "12030",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-chim",
+          "param_type": "w"
+        },
+        "12040": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Phụ kiện, Thức ăn, Dịch vụ",
+          "parent": "12000",
+          "filter": "true",
+          "id": "12040",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-phu-kien-thuc-an-dich-vu",
+          "param_type": "w"
+        },
+        "12050": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Mèo",
+          "parent": "12000",
+          "filter": "true",
+          "id": "12050",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-meo",
+          "param_type": "w"
+        },
+        "12060": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Thú cưng khác",
+          "parent": "12000",
+          "filter": "true",
+          "id": "12060",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-thu-cung-khac",
+          "param_type": "w"
+        },
+        "12070": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Hamster, Chuột lang",
+          "parent": "12000",
+          "filter": "true",
+          "id": "12070",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-hamster-chuot-lang",
+          "param_type": "w"
+        },
+        "12080": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Bò sát, Trăn, Rắn",
+          "parent": "12000",
+          "filter": "true",
+          "id": "12080",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-bo-sat",
+          "param_type": "w"
+        },
+        "12090": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Thủy sinh, Tôm cảnh, Ốc cảnh",
+          "parent": "12000",
+          "filter": "true",
+          "id": "12090",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-thuy-sinh-tom-oc-canh",
+          "param_type": "w"
+        }
+      },
+      "orderList": [
+        "12010",
+        "12020",
+        "12030",
+        "12050",
+        "12060",
+        "12040",
+        "12070",
+        "12080",
+        "12090"
+      ]
+    }
+  },
+  "13000": {
+    "id": "13000",
+    "name": "Việc làm",
+    "name_url": "viec-lam",
+    "param_type": "w",
+    "feature": {
+      "is_new": false
+    },
+    "subCategories": {
+      "entities": {
+        "13010": {
+          "filter_types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "name": "Việc làm",
+          "parent": "13000",
+          "filter": "true",
+          "id": "13010",
+          "types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "viec-lam",
+          "param_type": "w"
+        },
+        "13020": {
+          "filter_types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "name": "Tài xế, Giao hàng",
+          "parent": "13000",
+          "filter": "true",
+          "id": "13020",
+          "types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "viec-lam-tai-xe-giao-hang",
+          "param_type": "w"
+        },
+        "13030": {
+          "filter_types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "name": "Bảo vệ, An ninh",
+          "parent": "13000",
+          "filter": "true",
+          "id": "13030",
+          "types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "viec-lam-bao-ve-an-ninh",
+          "param_type": "w"
+        },
+        "13040": {
+          "filter_types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "name": "Tạp vụ, Giúp việc",
+          "parent": "13000",
+          "filter": "true",
+          "id": "13040",
+          "types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "viec-lam-tap-vu-giup-viec",
+          "param_type": "w"
+        },
+        "13050": {
+          "filter_types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "name": "Bán hàng, Chăm sóc khách hàng",
+          "parent": "13000",
+          "filter": "true",
+          "id": "13050",
+          "types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "viec-lam-ban-hang-cskh",
+          "param_type": "w"
+        },
+        "13060": {
+          "filter_types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "name": "Nhân viên phục vụ, Phụ bếp",
+          "parent": "13000",
+          "filter": "true",
+          "id": "13060",
+          "types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "viec-lam-phuc-vu-phu-bep",
+          "param_type": "w"
+        },
+        "13070": {
+          "filter_types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "name": "Công nhân, Lao động phổ thông",
+          "parent": "13000",
+          "filter": "true",
+          "id": "13070",
+          "types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "viec-lam-cong-nhan-lao-dong",
+          "param_type": "w"
+        },
+        "13080": {
+          "filter_types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "name": "Kế toán, Hành chính",
+          "parent": "13000",
+          "filter": "true",
+          "id": "13080",
+          "types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "viec-lam-ke-toan-hanh-chinh",
+          "param_type": "w"
+        },
+        "13090": {
+          "filter_types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "name": "Marketing, PR, Tổ chức sự kiện",
+          "parent": "13000",
+          "filter": "true",
+          "id": "13090",
+          "types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "viec-lam-marketing-pr",
+          "param_type": "w"
+        },
+        "13100": {
+          "filter_types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "name": "IT, Lập trình viên",
+          "parent": "13000",
+          "filter": "true",
+          "id": "13100",
+          "types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "viec-lam-it-phan-mem",
+          "param_type": "w"
+        },
+        "13110": {
+          "filter_types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "name": "Kỹ sư, Kiến trúc sư",
+          "parent": "13000",
+          "filter": "true",
+          "id": "13110",
+          "types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "viec-lam-ky-su-kien-truc",
+          "param_type": "w"
+        },
+        "13120": {
+          "filter_types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "name": "Giáo viên, Gia sư",
+          "parent": "13000",
+          "filter": "true",
+          "id": "13120",
+          "types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "viec-lam-giao-vien-gia-su",
+          "param_type": "w"
+        },
+        "13130": {
+          "filter_types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "name": "Y tế, Dược",
+          "parent": "13000",
+          "filter": "true",
+          "id": "13130",
+          "types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "viec-lam-y-te-duoc",
+          "param_type": "w"
+        },
+        "13140": {
+          "filter_types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "name": "Thực tập sinh",
+          "parent": "13000",
+          "filter": "true",
+          "id": "13140",
+          "types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "viec-lam-thuc-tap-sinh",
+          "param_type": "w"
+        },
+        "13150": {
+          "filter_types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "name": "Freelancer, Làm việc tự do",
+          "parent": "13000",
+          "filter": "true",
+          "id": "13150",
+          "types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "viec-lam-freelancer",
+          "param_type": "w"
+        },
+        "13160": {
+          "filter_types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "name": "Việc làm thêm, Part-time",
+          "parent": "13000",
+          "filter": "true",
+          "id": "13160",
+          "types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "viec-lam-part-time",
+          "param_type": "w"
+        },
+        "13170": {
+          "filter_types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "name": "Xuất khẩu lao động",
+          "parent": "13000",
+          "filter": "true",
+          "id": "13170",
+          "types": [
+            {
+              "s": "Việc tìm người"
+            }
+          ],
+          "giveaway": false,
+          "name_url": "viec-lam-xuat-khau-lao-dong",
+          "param_type": "w"
+        }
+      },
+      "orderList": [
+        "13010",
+        "13020",
+        "13030",
+        "13040",
+        "13050",
+        "13060",
+        "13070",
+        "13080",
+        "13090",
+        "13100",
+        "13110",
+        "13120",
+        "13130",
+        "13140",
+        "13150",
+        "13160",
+        "13170"
+      ]
+    }
+  },
+  "14000": {
+    "id": "14000",
+    "name": "Đồ gia dụng, nội thất, cây cảnh",
+    "name_url": "mua-ban-do-gia-dung-noi-that-cay-canh",
+    "type": "mua-ban-",
+    "param_type": "w",
+    "feature": {
+      "is_new": false
+    },
+    "subCategories": {
+      "entities": {
+        "14010": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Bếp, lò, đồ điện nhà bếp",
+          "parent": "14000",
+          "filter": "true",
+          "id": "14010",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-bep-lo-do-dien-nha-bep",
+          "param_type": "w"
+        },
+        "14020": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Dụng cụ nhà bếp",
+          "parent": "14000",
+          "filter": "true",
+          "id": "14020",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-dung-cu-nha-bep",
+          "param_type": "w"
+        },
+        "14030": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Giường, chăn ga gối nệm",
+          "parent": "14000",
+          "filter": "true",
+          "id": "14030",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-giuong-chan-ga-goi-nem",
+          "param_type": "w"
+        },
+        "14040": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Thiết bị vệ sinh, nhà tắm",
+          "parent": "14000",
+          "filter": "true",
+          "id": "14040",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-thiet-bi-ve-sinh-nha-tam",
+          "param_type": "w"
+        },
+        "14050": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Quạt",
+          "parent": "14000",
+          "filter": "true",
+          "id": "14050",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-quat",
+          "param_type": "w"
+        },
+        "14060": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Đèn",
+          "parent": "14000",
+          "filter": "true",
+          "id": "14060",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-den",
+          "param_type": "w"
+        },
+        "14070": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Bàn ghế",
+          "parent": "14000",
+          "filter": "true",
+          "id": "14070",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-ban-ghe",
+          "param_type": "w"
+        },
+        "14080": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Tủ, kệ gia đình",
+          "parent": "14000",
+          "filter": "true",
+          "id": "14080",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-tu-ke-gia-dinh",
+          "param_type": "w"
+        },
+        "14090": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Cây cảnh, đồ trang trí",
+          "parent": "14000",
+          "filter": "true",
+          "id": "14090",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-cay-canh-do-trang-tri",
+          "param_type": "w"
+        },
+        "14110": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            },
+            {
+              "k": "Bán"
+            }
+          ],
+          "name": "Nội thất, đồ gia dụng khác",
+          "parent": "14000",
+          "filter": "true",
+          "id": "14110",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "giveaway": true,
+          "name_url": "mua-ban-noi-that-do-gia-dung-khac",
+          "param_type": "w"
+        }
+      },
+      "orderList": [
+        "14070",
+        "14080",
+        "14030",
+        "14010",
+        "14020",
+        "14050",
+        "14060",
+        "14090",
+        "14040",
+        "14110"
+      ]
+    }
+  },
+  "15000": {
+    "id": "15000",
+    "name": "Dịch vụ chăm sóc nhà cửa",
+    "name_url": "dich-vu-cham-soc-nha-cua",
+    "param_type": "w",
+    "feature": {
+      "is_new": true
+    },
+    "subCategories": {
+      "entities": {
+        "15010": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            }
+          ],
+          "name": "Dịch vụ dọn dẹp nhà",
+          "parent": "15000",
+          "filter": "false",
+          "id": "15010",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "friendly_name": "dich-vu-don-dep-nha",
+          "giveaway": false,
+          "name_url": "dich-vu-don-dep-nha",
+          "param_type": "w"
+        },
+        "15020": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            }
+          ],
+          "name": "Dịch vụ chuyển nhà",
+          "parent": "15000",
+          "filter": "false",
+          "id": "15020",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "friendly_name": "dich-vu-chuyen-nha",
+          "giveaway": false,
+          "name_url": "dich-vu-chuyen-nha",
+          "param_type": "w"
+        },
+        "15030": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            }
+          ],
+          "name": "Dịch vụ sửa chữa & bảo dưỡng điện máy",
+          "parent": "15000",
+          "filter": "false",
+          "id": "15030",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "friendly_name": "dich-vu-sua-chua-bao-duong-dien-may",
+          "giveaway": false,
+          "name_url": "dich-vu-sua-chua-bao-duong-dien-may",
+          "param_type": "w"
+        },
+        "15040": {
+          "filter_types": [
+            {
+              "s": "Mua"
+            }
+          ],
+          "name": "Dịch vụ nhà cửa khác",
+          "parent": "15000",
+          "filter": "false",
+          "id": "15040",
+          "types": [
+            {
+              "s": "Cần bán"
+            }
+          ],
+          "friendly_name": "dich-vu-nha-cua-khac",
+          "giveaway": false,
+          "name_url": "dich-vu-nha-cua-khac",
+          "param_type": "w"
+        }
+      },
+      "orderList": [
+        "15010",
+        "15020",
+        "15030",
+        "15040"
+      ]
+    }
+  }
+}
