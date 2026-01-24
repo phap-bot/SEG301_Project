@@ -148,7 +148,7 @@ streamlit run src/ui/app.py
 ### 6.1. Data Responsibilities
 | Member | Platforms Assigned |
 |--------|--------------------|
-| **Nguyễn Lê Tấn Pháp** | Lazada, Điện Máy Xanh |
+| **Nguyễn Lê Tấn Pháp** | Lazada, Điện Máy Xanh,FptShop |
 | **Tô Thanh Hậu** | Tiki, Chợ Tốt |
 | **Nguyễn Hải Nam** | Lazada, CellphoneS |
 
@@ -200,12 +200,20 @@ SEG301-Project-GroupX/
 │   ├── lazada_sample.jsonl
 │   └── ...
 │
-├── src/                    # Source code
-│   ├── crawler/            # Crawling scripts (Node/Python)
-│   ├── indexer/            # SPIMI implementation
+├── src/  # Source code
+|   |── __init__.py
+|   |         
+│   ├── crawler/             # Milestone 1: Code thu thập dữ liệu
+│   │   ├── spider.py        # Logic crawl chính
+│   │   ├── parser.py        # Xử lý HTML, tách từ
+│   │   └── utils.py               # Crawling scripts (Node/Python)
+│   ├── indexer/
+│   │   ├── spimi.py         # Thuật toán SPIMI
+│   │   ├── merging.py       # Logic merge block
+│   │   └── compression.py   # Nén dữ liệu (nếu có)            # SPIMI implementation
 │   ├── ranking/            # BM25 & Semantic ranking
 │   └── ui/                 # Streamlit App
-│
+│     └── app.py           
 └── tests/                  # Unit tests
 ```
 
