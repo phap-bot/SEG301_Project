@@ -123,7 +123,69 @@ Rewriting fptshop_crawl.py (The Runner) to use this new Spider class.
 I will proceed with creating the Spider class first.
 
 implementation_plan.md
-Op
+25/01
+
+{skipCount: 24, maxResultCount: 24, keyword: "tivi", pipeline: "Normal", sortMethod: "noi-bat",…}
+categorySlug
+: 
+"tivi"
+isFilterAllCategory
+: 
+false
+keyword
+: 
+"tivi"
+location
+: 
+null
+maxResultCount
+: 
+24
+pipeline
+: 
+"Normal"
+skipCount
+: 
+24
+sortMethod
+: 
+"noi-bat"
+
+t cung cấp paylod
+
+Thought for 13s
+
+
+
+
+
+
+Refactoring FPTShop Crawler to API-based
+Implemented 
+FPTShopSpider
+ as an API client. It extracts the search keyword from the URL, calls the FPTShop fulltext search API with the user-specified payload, handles pagination, and maps the response to the required JSONL format. This should be significantly faster and more reliable than Playwright.
+
+Files Edited
+Task
+fptshop_search.py
+test_fpt_api.py
+Progress Updates
+1
+Verifying API payload with user-provided parameters
+
+2
+Implementing FPTShopAPISpider to consume API
+
+3
+Notifying user to test API crawler
+
+I have completely rewritten the crawler to use the FPTShop API (https://papi.fptshop.com.vn/...) as requested.
+
+Method: Direct API requests (no browser/Playwright).
+Speed: Extremely fast.
+Data: Accurate (raw data from server).
+Pagination: Handles skipCount / totalCount automatically.
+Please run it: python fptshop_crawl.py -> tivi. It should fetch all ~114 items instantly.
 
 ### Hau – Tiki Crawling Troubleshooting
 ## Date: 2026-01-21
