@@ -343,7 +343,34 @@ Dữ liệu API của Chợ Tốt thay đổi field tùy theo `cg` (category). V
        continue 
    ```
 
-   **Nam**
+### Hau – eBay Crawling 
+## Date: 2026-01-24
+
+**Task:** Tối ưu hóa bộ nhớ khi chạy danh sách KEYWORDS lớn
+
+**User:** Script của tôi chạy qua 30 từ khóa, mỗi từ khóa 20 trang. Sau khi chạy được một nửa, tôi thấy máy rất lag và RAM tăng vọt. Code của tôi đã dùng `async with seen_lock` và ghi file liên tục, tại sao vẫn tốn tài nguyên?
+
+**AI (ChatGPT):** 
+Nguyên nhân chủ yếu nằm ở biến `seen_ids`. 
+1. **Phân tích:** Bạn đang lưu hàng chục nghìn `product_id` (chuỗi văn bản) vào một tập hợp (`set`) trong RAM. Càng chạy lâu, tập hợp này càng phình to.
+2. **Cách khắc phục đơn giản:** 
+   - Thay vì nạp toàn bộ lịch sử từ file `ebay_products.jsonl` vào RAM mỗi khi khởi động, bạn chỉ nên nạp các ID đã cào trong 1-2 ngày gần nhất.
+   - Sau mỗi từ khóa hoàn thành, hãy gọi `checkpoint_data` và giải phóng bớt các biến tạm không cần thiết. Vì bạn đã có file ghi `append`, việc duy trì một `set` quá khổng lồ trong RAM là không cần thiết nếu bạn chấp nhận tỷ lệ trùng lặp nhỏ.
+
+---
+
+**Task:** Lỗi thiếu Rating và Review do eBay thay đổi giao diện (UI Variations)
+
+**User:** Tại sao có những sản phẩm trên web có hiện sao (Rating) nhưng script của tôi lại lưu là "0"? Tôi đã kiểm tra Selector `.x-star-rating` nhưng có vẻ nó không lấy được hết.
+
+**AI (ChatGPT):** 
+eBay thường xuyên thực hiện A/B Testing, nghĩa là cùng một trang web nhưng mỗi người dùng (hoặc mỗi lần load) sẽ thấy một cấu trúc HTML khác nhau.
+1. **Hiện tượng:** Có lúc sao nằm trong thẻ `span`, có lúc lại nằm trong `aria-label` của một thẻ `div`.
+2. **Giải pháp "mềm":** 
+   - Đừng chỉ tin vào một Selector. Hãy dùng logic: Nếu Selector A không có dữ liệu, hãy thử Selector B. 
+   - Trong code của bạn, phần `Fallback` tìm chữ "out of 5 stars" trong toàn bộ text của sản phẩm là hướng đi rất đúng. Bạn nên mở rộng thêm việc tìm kiếm các chuỗi như "ratings" hoặc số nằm trong ngoặc đơn `(123)` cạnh phần ngôi sao để tăng tỉ lệ lấy được dữ liệu.
+
+**Nam**
 # Chat Conversation
 
 Note: _This is purely the output of the chat conversation and does not contain any raw data, codebase snippets, etc. used to generate the output._
