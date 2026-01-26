@@ -7,7 +7,7 @@
 | Name | Student ID | Role | Contribution | 
 |------|-----------|------|--------------|
 | Nguyễn Lê Tấn Pháp | QE190155 | Crawler Lead | Crawling Lazada & Điện Máy Xanh, anti-bot strategy |
-| Tô Thanh Hậu | QE190039 | Crawler | Crawling Tiki & Chợ Tốt, data normalization | 
+| Tô Thanh Hậu | QE190039 | Crawler | Crawling Tiki & Chợ Tốt & eBay, data normalization | 
 | Nguyễn Hải Nam | QE190027 | Crawler | Crawling Lazada & CellphoneS, anti-bot detection | 
 
 ---
@@ -149,7 +149,7 @@ streamlit run src/ui/app.py
 | Member | Platforms Assigned |
 |--------|--------------------|
 | **Nguyễn Lê Tấn Pháp** | Lazada, Điện Máy Xanh,FptShop |
-| **Tô Thanh Hậu** | Tiki, Chợ Tốt |
+| **Tô Thanh Hậu** | Tiki, Chợ Tốt, eBay  |
 | **Nguyễn Hải Nam** | Lazada, CellphoneS |
 
 ### 6.2. Sample Dataset
@@ -178,7 +178,7 @@ All datasets follow a unified JSON structure:
 ```
 
 ### 6.4. Full Dataset Access
-*   **Link:** `https://drive.google.com/...` (Update link)
+*   **Link:** `https://drive.google.com/file/d/17ddV7FqjrgrUNOXXpQXltqMXMf1qNjfM/view?usp=sharing`
 *   **Total Size:** ~500MB (Compressed)
 *   **Scale:** ~1,000,000 products
 *   **Format:** JSONL and SQLite
