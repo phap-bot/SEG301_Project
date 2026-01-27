@@ -178,7 +178,7 @@ All datasets follow a unified JSON structure:
 ```
 
 ### 6.4. Full Dataset Access
-*   **Link:** `https://drive.google.com/file/d/17ddV7FqjrgrUNOXXpQXltqMXMf1qNjfM/view?usp=sharing`
+*   **Link:** `https://drive.google.com/file/d/16BqO0aVf_b6F3fiIUdobhCmOW294OgiD/view?usp=sharing`
 *   **Total Size:** ~500MB (Compressed)
 *   **Scale:** ~1,000,000 products
 *   **Format:** JSONL and SQLite
