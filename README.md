@@ -6,9 +6,9 @@
 
 | Name | Student ID | Role | Contribution | 
 |------|-----------|------|--------------|
-| Nguyễn Lê Tấn Pháp | QE190155 | Crawler Lead | Crawling Lazada & Điện Máy Xanh, anti-bot strategy |
-| Tô Thanh Hậu | QE190039 | Crawler | Crawling Tiki & Chợ Tốt & eBay, data normalization | 
-| Nguyễn Hải Nam | QE190027 | Crawler | Crawling Lazada & CellphoneS, anti-bot detection | 
+| Nguyễn Lê Tấn Pháp | QE190155 | Crawler Lead | Crawling Lazada & Điện Máy Xanh |
+| Tô Thanh Hậu | QE190039 | Crawler | Crawling Tiki & Chợ Tốt & eBay | 
+| Nguyễn Hải Nam | QE190027 | Crawler | Crawling Lazada & CellphoneS | 
 
 ---
 
