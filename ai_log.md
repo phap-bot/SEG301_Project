@@ -329,7 +329,7 @@ except Exception as e:
 **User:** Hàm `parse_ad(ad, cg_id)` của tôi thỉnh thoảng trả về `None` hoặc bị crash khi cào sang mục "Xe cộ" hoặc "Bất động sản", trong khi mục "Đồ điện tử" chạy rất tốt. Làm sao để đảm bảo script chạy xuyên suốt cho mọi ngành hàng?
 
 **AI (ChatGPT):** 
-Dữ liệu API của Chợ Tốt thay đổi field tùy theo `cg` (category). Ví dụ: Bất động sản có `di diện_tích`, Xe cộ có `số_km_đã_đi`, nhưng Đồ điện tử thì không.
+Dữ liệu API của Chợ Tốt thay đổi field tùy theo `cg` (category). Ví dụ: Bất động sản có `diện_tích`, Xe cộ có `số_km_đã_đi`, nhưng Đồ điện tử thì không.
 1. **Lỗi `KeyError`:** Đây là sát thủ số 1. Trong `parser.py`, hãy sử dụng triệt để phương thức `.get()` với giá trị mặc định.
    - Xấu: `price = ad['price']`
    - Tốt: `price = ad.get('price', 0)`
@@ -345,19 +345,6 @@ Dữ liệu API của Chợ Tốt thay đổi field tùy theo `cg` (category). V
 
 ### Hau – eBay Crawling 
 ## Date: 2026-01-24
-
-**Task:** Tối ưu hóa bộ nhớ khi chạy danh sách KEYWORDS lớn
-
-**User:** Script của tôi chạy qua 30 từ khóa, mỗi từ khóa 20 trang. Sau khi chạy được một nửa, tôi thấy máy rất lag và RAM tăng vọt. Code của tôi đã dùng `async with seen_lock` và ghi file liên tục, tại sao vẫn tốn tài nguyên?
-
-**AI (ChatGPT):** 
-Nguyên nhân chủ yếu nằm ở biến `seen_ids`. 
-1. **Phân tích:** Bạn đang lưu hàng chục nghìn `product_id` (chuỗi văn bản) vào một tập hợp (`set`) trong RAM. Càng chạy lâu, tập hợp này càng phình to.
-2. **Cách khắc phục đơn giản:** 
-   - Thay vì nạp toàn bộ lịch sử từ file `ebay_products.jsonl` vào RAM mỗi khi khởi động, bạn chỉ nên nạp các ID đã cào trong 1-2 ngày gần nhất.
-   - Sau mỗi từ khóa hoàn thành, hãy gọi `checkpoint_data` và giải phóng bớt các biến tạm không cần thiết. Vì bạn đã có file ghi `append`, việc duy trì một `set` quá khổng lồ trong RAM là không cần thiết nếu bạn chấp nhận tỷ lệ trùng lặp nhỏ.
-
----
 
 **Task:** Lỗi thiếu Rating và Review do eBay thay đổi giao diện (UI Variations)
 
@@ -720,99 +707,3 @@ lazada còn cái Sửa lỗi giá: Đã thêm logic phân biệt rõ "Giá Sale"
 
 *Viewed [lazada.js](file:///c:/Nam%20dep%20trai/CODE/SEG/SUPER%20SEG/ecommerce-crawler/src/crawlers/lazada.js) *
 
-### User Input
-
-<div class="Bm3ON" data-qa-locator="product-item" data-tracking="product-card" data-sku-simple="3252052249_VNAMZ-15677372382" data-item-id="3252052249" data-listno="0" data-utlogmap="{&quot;listno&quot;:0,&quot;pageIndex&quot;:1,&quot;pvid&quot;:&quot;511f7fbcb01fea1fad18059efa486a70&quot;,&quot;query&quot;:&quot;Balo nam nữ đi học&quot;,&quot;style&quot;:&quot;wf&quot;,&quot;x_item_ids&quot;:&quot;3252052249&quot;,&quot;x_object_id&quot;:&quot;3252052249&quot;,&quot;x_object_type&quot;:&quot;item&quot;}" data-aplus-ae="x1_148fa8d9" data-spm-anchor-id="a2o4n.searchlist.list.i0.1940117b98eCaZ" data-aplus-clk="x1_148fa8d9"><div class="Ms6aG MefHh"><div class="qmXQo"><div class="ICdUp"><div class="_95X4G"><a age="0" href="//www.lazada.vn/products/pdp-i3252052249.html?spm=a2o4n.searchlist.list.1.1940117b98eCaZ" data-spm-anchor-id="a2o4n.searchlist.list.1"><div class="picture-wrapper jBwCF "><img age="0" type="product" alt="Balo nam nữ đi học, balo đi chơi họa tiết helo kitty size 40 MP 165" src="https://img.lazcdn.com/g/p/1df22ed797fcd16280ccacfbb2b819c2.jpg_200x200q80.jpg" style="object-fit: fill;" data-spm-anchor-id="a2o4n.searchlist.list.i40.1940117b98eCaZ"></div></a></div><div class="_4+q67"><div class="eZKPe"><div class="LBHIN"><a age="0" class="uEds4 M1CUy" href="/products/pdp-i3252052249.html?spm=a2o4n.searchlist.list.2.1940117b98eCaZ" data-spm-anchor-id="a2o4n.searchlist.list.2"><div class="picture-wrapper jBwCF "><img age="0" type="thumb" src="https://img.lazcdn.com/g/p/3e55cc976834873605086b3918cafcc3.jpg_80x80q80.jpg" style="object-fit: fill;"></div></a></div><div class="LBHIN"><a age="0" class="uEds4" href="/products/pdp-i3252052249.html?spm=a2o4n.searchlist.list.3.1940117b98eCaZ" data-spm-anchor-id="a2o4n.searchlist.list.3"><div class="picture-wrapper jBwCF "><img age="0" type="thumb" src="https://img.lazcdn.com/g/p/5b92fb636a4abc34f49ce3ddef8815c5.jpg_80x80q80.jpg" style="object-fit: fill;"></div></a></div><div class="LBHIN"><a age="0" class="uEds4" href="/products/pdp-i3252052249.html?spm=a2o4n.searchlist.list.4.1940117b98eCaZ" data-spm-anchor-id="a2o4n.searchlist.list.4"><div class="picture-wrapper jBwCF "><img age="0" type="thumb" src="https://img.lazcdn.com/g/p/57a23065886f56d7e890af4edd00a55f.jpg_80x80q80.jpg" style="object-fit: fill;"></div></a></div></div></div></div><div class="buTCk"><div class="ajfs+"></div><div class="RfADt"><a age="0" href="//www.lazada.vn/products/pdp-i3252052249.html?spm=a2o4n.searchlist.list.5.1940117b98eCaZ" title="Balo nam nữ đi học, balo đi chơi họa tiết helo kitty size 40 MP 165" data-spm-anchor-id="a2o4n.searchlist.list.5">Balo nam nữ đi học, balo đi chơi họa tiết helo kitty size 40 MP 165</a></div><div class="aBrP0"><span class="ooOxS">₫99,000</span></div><div class="WNoq3"><span class="IcOsH">34% Off</span><span class="ic-dynamic-badge ic-dynamic-badge-text ic-dynamic-badge-120018 ic-dynamic-group-2" style="color: rgb(255, 0, 102);">Voucher save 34%</span></div><div class="_6uN7R"><span class="_1cEkb"><span>9 sold</span><span class="brHcE"></span></span><div class="mdmmT _32vUv"><i class="_9-ogB Dy1nx"></i><i class="_9-ogB Dy1nx"></i><i class="_9-ogB Dy1nx"></i><i class="_9-ogB Dy1nx"></i><i class="_9-ogB Dy1nx"></i><span class="qzqFw">(2)</span></div><span class="oa6ri " title="Vietnam">Vietnam</span></div></div></div></div></div> 
-đây là phần có trong lazada check xem lấy  giá đúng như fomat chưa 
-
-*Edited relevant file*
-
-### User Input
-
-cho hỏi cái nữa là ✅ [Lazada] Tìm thấy 48 sản phẩm Trang 1: 24 sản phẩm mới  HOÀN THÀNH! Tổng: 24 sản phẩm mới . sao tìm thì 48 mà lúc quét có 24 vậy
-
-*Viewed [lazada.js](file:///c:/Nam%20dep%20trai/CODE/SEG/SUPER%20SEG/ecommerce-crawler/src/crawlers/lazada.js) *
-
-*Viewed [lazada.js](file:///c:/Nam%20dep%20trai/CODE/SEG/SUPER%20SEG/ecommerce-crawler/src/crawlers/lazada.js) *
-
-### User Input
-
-cách hoạt động của cái check sản phẩm trùng
-
-*Viewed [db.js](file:///c:/Nam%20dep%20trai/CODE/SEG/SUPER%20SEG/ecommerce-crawler/src/utils/db.js) *
-
-*Edited relevant file*
-
-### User Input
-
-với kiểu này là script dùng tính năng gì có selenium requests không ?
-
-*Viewed [package.json](file:///c:/Nam%20dep%20trai/CODE/SEG/SUPER%20SEG/ecommerce-crawler/package.json) *
-
-*Edited relevant file*
-
-### User Input
-
-nhưng tốc độ cào này thấy so ới selenium thì còn chậm quá chỉ hỏi thôi có còn cách nào tối ưu nhanh hơn tí ko 
-
-### User Input
-
-hỏi trước đã nếu chạy nhiều tab ấy thì không sợ nó quét trùng trang à ? 
-
-### Planner Response
-
-Không sợ trùng đâu bạn ơi, cơ chế nó sẽ như thế này:
-
-1.  **Bước 1 (Giám sát)**: Tool vẫn dùng 1 Tab chính để quét trang danh sách -> Lấy được 40 link sản phẩm khác nhau.
-2.  **Bước 2 (Phân phối)**: Sau khi có danh sách 40 link đó, tool mới bắt đầu chia việc:
-    *   Chia link 1 cho Tab A.
-    *   Chia link 2 cho Tab B.
-    *   Chia link 3 cho Tab C.
-    *   ...
-    => Mỗi tab làm một sản phẩm riêng biệt, không ai giành việc của ai cả.
-
-Ngoài ra, Database của bạn đã có cơ chế [upsert](cci:1://file:///c:/Nam%20dep%20trai/CODE/SEG/SUPER%20SEG/ecommerce-crawler/verify_lazada_fixes.js:11:8-19:9) (khóa chống trùng), nên giả sử xui rủi có 2 tab cùng cào 1 sản phẩm (tỉ lệ cực thấp), thì Database cũng chỉ lưu 1 lần thôi.
-
-Nếu bạn muốn "đạp ga" chạy 3-5 luồng cùng lúc thì bảo mình nhé, code sửa đoạn này cũng nhanh thôi!
-
-*User accepted the command `node index.js`*
-
-### User Input
-
-3 luồng  thôi đã 
-
-*Viewed [lazada.js](file:///c:/Nam%20dep%20trai/CODE/SEG/SUPER%20SEG/ecommerce-crawler/src/crawlers/lazada.js) *
-
-*Edited relevant file*
-
-*Viewed [lazada.js](file:///c:/Nam%20dep%20trai/CODE/SEG/SUPER%20SEG/ecommerce-crawler/src/crawlers/lazada.js) *
-
-*User accepted the command `node index.js`*
-
-*Edited relevant file*
-
-### User Input
-
-đã chạy thử và lỗi như trên terminal nên tao đã reject về code cũ cho an toàn rồi 
-
-*Viewed [lazada.js](file:///c:/Nam%20dep%20trai/CODE/SEG/SUPER%20SEG/ecommerce-crawler/src/crawlers/lazada.js) *
-
-*Edited relevant file*
-
-*Viewed [task.md](file:///C:/Users/Lenovo/.gemini/antigravity/brain/0f0d5004-1cf6-4d3d-8c38-d627f29645e4/task.md) *
-
-### User Input
-
-có thể giảm tộc độ cuộn chuột thêm được không ? 
-
-*Viewed [lazada.js](file:///c:/Nam%20dep%20trai/CODE/SEG/SUPER%20SEG/ecommerce-crawler/src/crawlers/lazada.js) *
-
-*Edited relevant file*
-
-*Edited relevant file*
-
-### User Input
-
-không ý tao là crawl nhanh thêm nữa 
-
-*Edited relevant file*
