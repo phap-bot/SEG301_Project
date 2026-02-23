@@ -32,6 +32,7 @@ yarn-error.log*
 *.db
 *.sqlite
 data/
+index/
 !data_sample/
 
 ############################

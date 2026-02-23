@@ -18,10 +18,7 @@ This project implements an e-commerce search engine that aggregates product data
 ### Key Functionalities
 - **Data Collection:** Automated crawling with robust anti-bot detection handling.
 - **Indexing:** Text indexing using the **SPIMI** algorithm.
-- **Ranking:**
-  - Keyword-based: **BM25** (handcoded).
-  - Semantic-based: **Sentence Transformers**.
-- **User Interface:** Web-based search interface and real-time monitoring dashboard.
+- **Ranking:** Keyword-based **BM25** (handcoded).
 
 ### Supported Platforms
 The system aggregates data from:
@@ -41,9 +38,8 @@ The system follows a modular pipeline design:
   - *Node.js:* Playwright (with Stealth plugin).
   - *Python:* Selenium.
 - **Indexer:** Python (Custom SPIMI implementation).
-- **Ranking:** Python (BM25 & Vector Models).
-- **UI:** Streamlit (Python).
-- **Database:** SQLite & JSONL files.
+- **Ranking:** Python (BM25).
+- **Database:** JSONL files.
 
 ---
 
@@ -78,13 +74,6 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-**Step 3: Node.js Environment Setup (For Crawler)**
-```bash
-cd src/crawler/lazada
-npm install
-cd ../../..  # Return to root directory
-```
-
 ---
 
 ## 5. Execution & Usage
@@ -97,49 +86,17 @@ cd src/crawler/lazada
 node index.js
 ```
 
-**Features:**
-*   **Anti-bot Handling:**
-    *   Automatic switching between `headless` and `visible` modes when CAPTCHA is detected.
-    *   Detection of abnormal or empty search results.
-*   **Persistence:** Automatic cookie saving/loading.
+### 5.2. Chạy Indexing & Ranking
+Sau khi đã thu thập dữ liệu, bạn cần chạy các script sau để xây dựng chỉ mục và tính toán thứ hạng:
 
-**Monitoring Dashboard:**
-To view the real-time crawling status:
-```bash
-npm run web
-```
-> **Access:** [http://localhost:3000](http://localhost:3000)
-
-**Configuration:**
-Modify keywords in `src/crawler/lazada/config.json`:
-```json
-{
-  "keywords": [
-    "Man hinh may tinh",
-    "Laptop gaming",
-    "Chuot khong day"
-  ]
-}
-```
-
-### 5.2. Indexing & Ranking
-Once data is collected, run the following scripts to build the index and calculate rankings:
-
-1.  **Build Index (SPIMI):**
+1.  **Xây dựng Index (SPIMI):**
     ```bash
     python src/indexer/spimi.py
     ```
-2.  **Run Ranking Algorithm (BM25):**
+2.  **Chạy thuật toán xếp hạng (BM25):**
     ```bash
     python src/ranking/bm25.py
     ```
-
-### 5.3. Search Interface
-Launch the web application to search for products:
-
-```bash
-streamlit run src/ui/app.py
-```
 
 ---
 
@@ -148,42 +105,17 @@ streamlit run src/ui/app.py
 ### 6.1. Data Responsibilities
 | Member | Platforms Assigned |
 |--------|--------------------|
-| **Nguyễn Lê Tấn Pháp** | Lazada, Điện Máy Xanh,FptShop |
+| **Nguyễn Lê Tấn Pháp** | Lazada, Điện Máy Xanh, FptShop |
 | **Tô Thanh Hậu** | Tiki, Chợ Tốt, eBay  |
 | **Nguyễn Hải Nam** | Lazada, CellphoneS |
 
 ### 6.2. Sample Dataset
 Located in `data_sample/`. Contains 100–200 products per platform for testing.
-*   `lazada_sample.jsonl`
-*   `tiki_sample.jsonl`
-*   `chotot_sample.jsonl`
-*   `dienmayxanh_sample.jsonl`
-*   `cellphones_sample.jsonl`
 
-### 6.3. Data Schema
-All datasets follow a unified JSON structure:
-
-```json
-{
-  "platform": "lazada",
-  "product_id": "123456",
-  "name": "Product Name",
-  "price": 1000000,
-  "original_price": 1500000,
-  "discount": 33,
-  "url": "https://example.com/product/123",
-  "rating": 4.5,
-  "reviews": 120
-}
-```
-
-### 6.4. Full Dataset Access
+### 6.3. Full Dataset Access
 *   **Link:** `https://drive.google.com/file/d/16BqO0aVf_b6F3fiIUdobhCmOW294OgiD/view?usp=sharing`
 *   **Total Size:** ~500MB (Compressed)
 *   **Scale:** ~1,000,000 products
-*   **Format:** JSONL and SQLite
-
-> **Note:** This dataset is provided for academic purposes only.
 
 ---
 
@@ -191,30 +123,26 @@ All datasets follow a unified JSON structure:
 
 ```text
 SEG301-Project-GroupX/
-├── ai_log.md               # AI debugging logs
-├── package.json            # Node.js dependencies
-├── requirements.txt        # Python dependencies
-├── README.md               # Project documentation
-│
-├── data_sample/            # Sample data files
-│   ├── lazada_sample.jsonl
-│   └── ...
-│
-├── src/  # Source code
-|   |── __init__.py
-|   |         
-│   ├── crawler/             # Milestone 1: Code thu thập dữ liệu
-│   │   ├── spider.py        # Logic crawl chính
-│   │   ├── parser.py        # Xử lý HTML, tách từ
-│   │   └── utils.py               # Crawling scripts (Node/Python)
-│   ├── indexer/
-│   │   ├── spimi.py         # Thuật toán SPIMI
-│   │   ├── merging.py       # Logic merge block
-│   │   └── compression.py   # Nén dữ liệu (nếu có)            # SPIMI implementation
-│   ├── ranking/            # BM25 & Semantic ranking
-│   └── ui/                 # Streamlit App
-│     └── app.py           
-└── tests/                  # Unit tests
+├── .gitignore               # Cấu hình git ignore
+├── README.md                # Hướng dẫn dự án
+├── ai_log.md                # Nhật ký sử dụng AI
+├── requirements.txt         # Thư viện cần thiết
+├── data_1tr_clean_tokenized.jsonl # File dữ liệu lớn
+├── index/                   # Thư mục chứa chỉ mục (inverted index)
+├── data_sample/             # Dữ liệu mẫu
+│   └── sample.jsonl
+├── docs/                    # Báo cáo và giải thích thuật toán
+│   ├── Milestone1_Report.pdf
+│   └── Search_Explained.md
+└── src/                     # Source code chính
+    ├── crawler/             # Milestone 1: Thu thập dữ liệu
+    │   ├── parser.py        # Tiền xử lý
+    │   └── merge.py         # Gộp dữ liệu từ các platform
+    ├── indexer/             # Milestone 2: Tạo chỉ mục
+    │   ├── spimi.py         # Thuật toán SPIMI
+    │   └── build_index.py   # Script thực thi build index
+    └── ranking/             # Milestone 2: Xếp hạng
+        └── bm25.py          # Thuật toán BM25 (Code tay)
 ```
 
 ---
@@ -227,13 +155,12 @@ SEG301-Project-GroupX/
     *   Data cleaning and normalization.
 *   **Phase 2 (Weeks 5–7):**
     *   Implement SPIMI indexing algorithm.
-    *   Develop BM25 ranking and integrate semantic search.
+    *   Develop BM25 ranking.
 *   **Phase 3 (Weeks 8–10):**
-    *   Build Search UI (Streamlit).
+    *   Build Search UI.
     *   Final testing and presentation.
 
 ---
 
 ## 9. Credits & Attribution
-*   **Lazada Crawler:** Adapted from [phap-bot/SEG301_Project](https://github.com/phap-bot/SEG301_Project).
 *   **AI Assistance:** Debugging and bot-detection strategies are documented in `ai_log.md`.
