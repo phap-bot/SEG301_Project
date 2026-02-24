@@ -761,8 +761,8 @@ Dữ liệu rác (Duplicates) là kẻ thù của các thuật toán xếp hạn
 
 **Giải pháp:**
 1. **Chuẩn hóa Unicode:** Dùng `unicodedata.normalize('NFC', text)` để đưa về một chuẩn duy nhất.
-2. **Fold Case & Strip Accents:** Khi lập chỉ mục, hãy lưu thêm một phiên bản "không dấu" hoặc thực hiện chuyển đổi cả Query và Index về dạng không dấu để so sánh. 
-3. **Kết quả:** Search "iphone gia re" sẽ khớp đúng với "iPhone giá rẻ" trong database.
+2. **Strip Accents (Bỏ dấu):** Khi so sánh (Reranking), ta chuyển cả Query và Name sản phẩm về dạng không dấu hoàn toàn. Điều này giúp "dien thoai" khớp tuyệt đối với "điện thoại".
+3. **Kết quả:** Search "iphone gia re" sẽ khớp đúng với "iPhone giá rẻ" trong database cho dù người dùng gõ kiểu gì.
 
 ---
 

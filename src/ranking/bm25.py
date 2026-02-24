@@ -14,6 +14,11 @@ import os
 # Thêm đường dẫn để import tokenizer
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'indexer'))
 from vietnamese_tokenizer import tokenize
+import unicodedata
+
+def strip_accents(s):
+   return ''.join(c for c in unicodedata.normalize('NFD', s)
+                  if unicodedata.category(c) != 'Mn')
 
 
 class BM25Ranker:
@@ -264,8 +269,11 @@ class BM25Ranker:
             
             # --- CHIẾN LƯỢC 1: EXACT PHRASE MATCH ---
             query_clean = " ".join([t.replace('_', ' ') for t in query_terms])
-            if query_clean in name_str:
-                boost *= 4.0 # Ưu tiên rất cao nếu khớp nguyên cụm (vd: "điện thoại")
+            name_no_accent = strip_accents(name_str)
+            query_no_accent = strip_accents(query_clean)
+
+            if query_clean in name_str or query_no_accent in name_no_accent:
+                boost *= 4.0 # Ưu tiên rất cao nếu khớp nguyên cụm (kể cả không dấu)
             
             # --- CHIẾN LƯỢC 2: PHÂN BIỆT MODEL & SPEC ---
             if not query_has_unit:
