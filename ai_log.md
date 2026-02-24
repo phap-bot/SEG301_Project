@@ -707,3 +707,59 @@ lazada còn cái Sửa lỗi giá: Đã thêm logic phân biệt rõ "Giá Sale"
 
 *Viewed [lazada.js](file:///c:/Nam%20dep%20trai/CODE/SEG/SUPER%20SEG/ecommerce-crawler/src/crawlers/lazada.js) *
 
+---
+
+## Milestone 2: Indexing & Ranking (2026-02-15 - 2026-02-23)
+
+### Hau – BM25 Ranking & Memory Optimization
+## Date: 2026-02-20
+**Task:** Triển khai thuật toán xếp hạng BM25 và tối ưu bộ nhớ cho tập dữ liệu >1,000,000 sản phẩm.
+
+**User:** Mình đang cố chạy tính toán BM25 cho toàn bộ 1 triệu sản phẩm nhưng Python luôn báo lỗi `MemoryError` sau khi chạy được một lúc. Search cũng rất chậm, mất hơn 10 giây mới ra kết quả. Có cách nào tối ưu mà không cần nâng cấp RAM không?
+
+**AI (Google Gemini):**
+Vấn đề nằm ở việc bạn đang cố load toàn bộ Inverted Index và nội dung sản phẩm vào RAM. Với 1 triệu documents, bộ nhớ sẽ không bao giờ đủ.
+
+**Giải pháp đề xuất:**
+1. **Document Offsets:** Đừng lưu nội dung sản phẩm trong Index. Chỉ lưu vị trí Byte (offset) của sản phẩm đó trong file JSONL gốc. Khi cần lấy dữ liệu, dùng `f.seek(offset)` để truy xuất trực tiếp.
+2. **Top-K Retrieval:** Chỉ tính toán score BM25 cho các văn bản chứa từ khóa. Sử dụng `heapq` trong Python để duy trì danh sách 10 kết quả cao nhất thay vì sắp xếp tất cả.
+3. **Inverted Index Sparse:** Chỉ lưu DocID và Tần suất từ khóa (Term Frequency), bỏ qua các thông tin rườm rà khác.
+
+**Kết quả:** RAM tiêu thụ giảm từ >12GB xuống còn <1GB, thời gian search còn <1s.
+
+---
+
+### Phap – SPIMI Indexing Implementation
+## Date: 2026-02-18
+**Task:** Xây dựng hệ thống lập chỉ mục Inverted Index quy mô lớn.
+
+**User:** Việc sorting hàng triệu Token cùng lúc để tạo Inverted Index làm máy mình bị treo. Ngoài ra, việc gộp các kết quả từ nhiều phiên làm việc khác nhau cũng rất dễ gây lỗi mất dữ liệu.
+
+**AI (Google Gemini):**
+Để xử lý dữ liệu lớn vượt quá RAM, bạn nên triển khai thuật toán **SPIMI (Single-pass in-memory indexing)**.
+
+**Các bước thực hiện:**
+1. **Block-based:** Chia 1 triệu dòng thành các block nhỏ (ví dụ 100k dòng/block). Xử lý và sort từng block trong RAM rồi ghi ra file tạm.
+2. **K-way Merge:** Sau khi có các file tạm, dùng con trỏ để gộp (merge) chúng lại thành một file Index duy nhất theo thứ tự alphabet. Điều này đảm bảo bạn không bao giờ phải load quá nhiều dữ liệu cùng lúc.
+
+**Kết quả:** Đã xây dựng thành công bộ chỉ mục cho 1.02M sản phẩm mà không gặp lỗi tràn bộ nhớ.
+
+---
+
+### Nam – Vietnamese Tokenization Quality
+## Date: 2026-02-22
+**Task:** Tách từ tiếng Việt chuyên sâu cho dữ liệu thương mại điện tử.
+
+**User:** Thư viện `underthesea` chạy rất tốt nhưng với các từ đặc thù TMĐT như "iphone 15 pro max" hay "teencode" của shop thì nó hay tách sai, làm kết quả search BM25 không chính xác.
+
+**AI (Google Gemini):**
+Ngôn ngữ TMĐT rất đa dạng và thường xuyên có từ mới/từ mượn. Để cải thiện chất lượng tách từ (Tokenization), bạn cần can thiệp vào quá trình tiền xử lý.
+
+**Cách xử lý:**
+1. **Custom Dictionary:** Bổ sung danh sách các danh từ riêng, tên thương hiệu và model sản phẩm vào bộ từ điển ưu tiên.
+2. **Stopwords Filtering:** Xây dựng danh sách Stopwords (các từ "và", "của", "tại",...) để loại bỏ trước khi đưa vào BM25, giúp giảm nhiễu.
+3. **Normalizing:** Chuyển toàn bộ về chữ thường, loại bỏ ký tự đặc biệt và emoji trước khi tách từ.
+
+**Kết quả:** Độ chính xác của kết quả tìm kiếm (Precision) tăng đáng kể, các sản phẩm liên quan nhất luôn nằm ở Top 1-5.
+
+
