@@ -11,14 +11,35 @@ from typing import Dict, List, Tuple
 import sys
 import os
 
-# Thêm đường dẫn để import tokenizer
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'indexer'))
+# Thêm đường dẫn để import tokenizer (hoạt động cả khi chạy trực tiếp lẫn qua -m)
+_indexer_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'indexer')
+if _indexer_path not in sys.path:
+    sys.path.insert(0, _indexer_path)
 from vietnamese_tokenizer import tokenize
 import unicodedata
 
+def normalize_text(text: str, remove_accents: bool = False) -> str:
+    if not text:
+        return ""
+    # 1. Lowercase
+    text = text.lower()
+    # 2. Chuẩn hóa Unicode NFC
+    text = unicodedata.normalize('NFC', text)
+    if remove_accents:
+        # 3. Remove accent (nếu muốn search không dấu)
+        # Xử lý đ -> d thủ công vì NFD không tách được đ
+        text = text.replace('đ', 'd')
+        # NFD separates accents from base characters
+        text = unicodedata.normalize('NFD', text)
+        text = "".join([ch for ch in text if unicodedata.category(ch) != 'Mn'])
+        text = unicodedata.normalize('NFC', text)
+        # Đồng bộ dấu gạch dưới thành khoảng trắng
+        text = text.replace('_', ' ')
+    return text
+
 def strip_accents(s):
-   return ''.join(c for c in unicodedata.normalize('NFD', s)
-                  if unicodedata.category(c) != 'Mn')
+   """Loại bỏ dấu tiếng Việt mạnh mẽ (bao gồm cả đ -> d) và đồng bộ dấu gạch dưới"""
+   return normalize_text(s, remove_accents=True)
 
 
 class BM25Ranker:
@@ -210,20 +231,40 @@ class BM25Ranker:
     
     def search(self, query: str, top_k: int = 10) -> List[Tuple[int, float, str]]:
         """
-        Search thông minh nâng cao: BM25 + Intent Recognition + Smart Reranking
+        Search thông minh: BM25 + Intent Recognition + Smart Reranking
         """
-        query_terms = tokenize(query)
-        if not query_terms:
+        raw_query_terms = tokenize(query)
+        if not raw_query_terms:
             return []
             
-        print(f"🔍 Searching: '{query}'")
+        # Chuẩn hóa query không dấu và TÁCH rời các từ ghép để khớp index tốt nhất
+        # Vd: ['dien_thoai'] -> ['dien', 'thoai']
+        query_terms = []
+        for t in raw_query_terms:
+            norm_t = strip_accents(t).replace('_', ' ')
+            query_terms.extend(norm_t.split())
         
-        # 1. Intent Recognition: Nhận diện ý định
+        # Bỏ trùng lặp
+        query_terms = list(dict.fromkeys(query_terms))
+        
+        print(f"🔍 Searching: '{query}' (Terms: {query_terms})")
+        # DEBUG:
+        # print(f"DEBUG: Index keys sample: {list(self.inverted_index.keys())[:10]}")
+        
+        # 1. Intent Recognition: Nhận diện ý định (Sử dụng bộ NOISE_WORDS toàn diện)
+        NOISE_WORDS = {
+            'xac', 'vo', 'op', 'man', 'kinh', 'cuong', 'dan', 'mieng', 'tam', 
+            'sac', 'cap', 'day', 'dock', 'hub', 'adapter', 'tai', 'nguyen',
+            'phu', 'lop', 'vanh', 'gioang', 'loi', 'may', 'dong', 'nhot', 'dau', 'giam',
+            'pin', 'ram', 'ssd', 'hdd', 'ban', 'phim', 'quat', 'led', 'tui', 'balo',
+            'tinh', 'lot', 'giay', 'tham', 'nap', 'khoa', 'bong', 'cuc', 'chi', 'vai',
+            'hu', 'hong', 'be', 'vo', 'nat', 'chai', 'cu', 'second', 'used', 'thao', 'doi'
+        }
         units = {'gb', 'tb', 'mb', 'ram', 'ssd', 'hdd'}
-        accessory_keywords = {'ốp', 'sạc', 'pin', 'cáp', 'vỏ', 'bao', 'dán', 'kính', 'cường_lực', 'thay', 'sửa', 'xác', 'dây_đeo'}
         
-        query_has_unit = any(t in units or any(u in t for u in units if len(t) > 2) for t in query_terms)
-        query_has_accessory = any(t in accessory_keywords for t in query_terms)
+        query_has_unit = any(t in units for t in query_terms)
+        # Nếu query có bất kỳ từ nào thuộc NOISE_WORDS -> User đang CHỦ ĐỘNG tìm phụ kiện
+        query_has_accessory = any(t in NOISE_WORDS for t in query_terms)
         
         # 2. Thu thập ứng cử viên từ BM25 (lấy top 200)
         doc_scores = {}
@@ -253,66 +294,69 @@ class BM25Ranker:
         print(f"   Smart Reranking top {len(raw_top)} results...")
         
         final_results = []
-        important_query_terms = [t for t in query_terms if t not in ['điện_thoại', 'máy', 'bán', 'dien', 'thoai'] and len(self.inverted_index.get(t, [])) < self.total_docs * 0.2]
-
-        # Nhận diện ý định tìm điện thoại (smartphone)
-        is_searching_phone = any(t in ['điện_thoại', 'smartphone', 'iphone', 'dien_thoai'] for t in query_terms) or \
-                             all(t in ['dien', 'thoai'] for t in query_terms)
+        
+        # Stopwords KHÔNG DẤU (vì cả index lẫn query đã được chuẩn hóa)
+        stopwords = {'cai', 'chiec', 'con', 'bo', 'ra', 'voi', 'va', 'cho', 'moi', 'gia', 're', 'ban', 'thanh', 'ly', 'dich', 'vu'}
+        
+        # Query đã là list từ không dấu, tính coordination factor
+        important_q_terms = [t for t in query_terms if t not in stopwords and len(t) > 1]
+        if not important_q_terms: important_q_terms = query_terms[:]
+        
+        total_q_terms = len(important_q_terms)
+        query_phrase = " ".join(query_terms)  # Cụm query không dấu
 
         for doc_id, base_score in raw_top:
             doc = self.get_doc_info(doc_id)
-            name = doc.get('product_name', '').lower()
-            name_tokens = [t.lower() for t in doc.get('tokens', [])]
-            name_str = " ".join(name_tokens).replace('_', ' ')
+            if not doc:
+                continue
+            
+            # Doc tokens đã được chuẩn hóa không dấu trong file data
+            doc_tokens = doc.get('tokens', [])
+            # Chuẩn hóa thêm cho chắc (phòng trường hợp token cũ còn dấu)
+            norm_tokens = []
+            for t in doc_tokens:
+                norm_tokens.extend(strip_accents(t).split())
+            
+            # Tên sản phẩm gốc -> chuẩn hóa không dấu để so sánh
+            name_norm = strip_accents(doc.get('product_name', ''))
             
             boost = 1.0
             
-            # --- CHIẾN LƯỢC 1: EXACT PHRASE MATCH ---
-            query_clean = " ".join([t.replace('_', ' ') for t in query_terms])
-            name_no_accent = strip_accents(name_str)
-            query_no_accent = strip_accents(query_clean)
-
-            if query_clean in name_str or query_no_accent in name_no_accent:
-                boost *= 4.0 # Ưu tiên rất cao nếu khớp nguyên cụm (kể cả không dấu)
+            # --- CHIẾN LƯỢC 1: COORDINATION FACTOR ---
+            unique_matches = sum(1 for q in important_q_terms if q in name_norm)
+            if total_q_terms > 0:
+                match_ratio = unique_matches / total_q_terms
+                boost *= (match_ratio ** 2)
             
-            # --- CHIẾN LƯỢC 2: PHÂN BIỆT MODEL & SPEC ---
-            if not query_has_unit:
-                for t_query in query_terms:
-                    if t_query.isdigit():
-                        pos = name_str.find(t_query)
-                        if pos != -1:
-                            after_text = name_str[pos + len(t_query):pos + len(t_query)+5].strip()
-                            if any(after_text.startswith(u) for u in units):
-                                boost *= 0.4
+            # --- CHIẾN LƯỢC 2: PHRASE MATCH BOOST ---
+            if query_phrase in name_norm:
+                boost *= 2.5
             
             # --- CHIẾN LƯỢC 3: ƯU TIÊN VỊ TRÍ ĐẦU ---
-            if query_terms and name_tokens and query_terms[0] == name_tokens[0]:
-                boost *= 1.5
+            if query_terms and norm_tokens:
+                first_q = query_terms[0]
+                if first_q not in stopwords and norm_tokens and norm_tokens[0] == first_q:
+                    boost *= 1.5
             
-            # --- CHIẾN LƯỢC 4: LỌC PHỤ KIỆN & LỌC NHIỄU INTENT ---
+            # --- CHIẾN LƯỢC 4: BLACKLIST TỪ NHIỄU (Noise Word Penalty) ---
             if not query_has_accessory:
-                if any(t in accessory_keywords for t in name_tokens[:3]):
-                    boost *= 0.05
-                elif any(t in accessory_keywords for t in name_tokens):
-                    boost *= 0.2
+                # Quét xem có từ nào trong tên thuộc NOISE_WORDS không
+                all_name_tokens = name_norm.split()
+                # Phạt nặng hơn nếu từ nhiễu ở ngay đầu
+                first3 = set(all_name_tokens[:3])
+                anywhere = set(all_name_tokens)
 
-            # --- CHIẾN LƯỢC 6: LỌC NHIỄU Đồ điện dùng (Nếu đang tìm điện thoại) ---
-            if is_searching_phone:
-                noise_keywords = {'nồi_cơm', 'xe_đạp', 'xe_máy', 'điện_lạnh', 'gia_dụng', 'nồi', 'quạt', 'bóng_đèn', 'ổ_cắm', 'xe_điện', 'dây_điện'}
-                # Nếu tiêu đề có các từ này mà KHÔNG có từ "điện_thoại" hoặc "iphone/samsung..." đi kèm thì phạt cực nặng
-                if any(noise in name_tokens for noise in noise_keywords):
-                    # Kiểm tra xem có keyword smartphone thực sự không
-                    has_real_phone_kw = any(kw in name_tokens for kw in ['điện_thoại', 'iphone', 'samsung', 'oppo', 'xiaomi', 'vivo', 'realme'])
-                    if not has_real_phone_kw:
-                        boost *= 0.01 # Coi như loại bỏ khỏi top đầu
-            
-            # --- CHIẾN LƯỢC 5: ĐỘ PHỦ TỪ KHÓA QUAN TRỌNG ---
-            match_count = sum(1 for t in important_query_terms if t in name_tokens)
-            if len(important_query_terms) > 0:
-                boost *= (1 + (match_count / len(important_query_terms)))
+                noise_in_front  = sum(1 for t in first3 if t in NOISE_WORDS)
+                noise_elsewhere = sum(1 for t in anywhere if t in NOISE_WORDS) - noise_in_front
+
+                if noise_in_front >= 1:
+                    boost *= (0.05 ** noise_in_front) # Phạt cực nặng nếu "Xác..." đứng đầu
+                elif noise_elsewhere >= 1:
+                    boost *= (0.35 ** noise_elsewhere) # Phạt vừa nếu "điện thoại ... xác"
+
 
             final_results.append((doc_id, base_score * boost, query))
-            
+        
         final_results.sort(key=lambda x: x[1], reverse=True)
         return final_results[:top_k]
     
@@ -342,7 +386,7 @@ if __name__ == "__main__":
     ranker = BM25Ranker(index_dir="index")
     
     # Test search
-    results = ranker.search("airtag", top_k=10)
+    results = ranker.search("dien thoai", top_k=10)
     
     print("="*80)
     print("TOP 10 RESULTS:")

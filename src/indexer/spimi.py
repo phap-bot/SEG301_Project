@@ -9,7 +9,20 @@ import os
 from collections import defaultdict
 from typing import Dict, List, Tuple
 import heapq
+import unicodedata
 
+def strip_accents(s):
+   """Loại bỏ dấu tiếng Việt mạnh mẽ (bao gồm cả đ -> d) và đồng bộ dấu gạch dưới"""
+   if not s: return ""
+   s = s.lower()
+   # Xử lý đ -> d thủ công vì NFD không tách được đ
+   s = s.replace('đ', 'd')
+   # Loại bỏ các dấu sắc, huyền, hỏi, ngã, nặng
+   s = "".join(c for c in unicodedata.normalize('NFD', s)
+                  if unicodedata.category(c) != 'Mn')
+   # Đồng bộ: thay gạch dưới bằng khoảng trắng rồi split để lấy từ đơn
+   # Điều này giúp Index và Search đều làm việc trên 'từ đơn', tăng khả năng khớp
+   return s.replace('_', ' ')
 
 class SPIMIIndexer:
     """
@@ -65,9 +78,13 @@ class SPIMIIndexer:
             
             # Build inverted index với TF: term -> {doc_id: frequency}
             for token in tokens:
-                # Chỉ index các terms hữu ích
-                if self._is_valid_term(token):
-                    inverted_index[token][doc_id] += 1  # Increment TF
+                # Chuẩn hóa và tách thành các từ đơn (flatten)
+                # Vd: "điện_thoại" -> "điện thoại" -> ["dien", "thoai"]
+                sub_tokens = strip_accents(token).split()
+                for sub_t in sub_tokens:
+                    # Chỉ index các terms hữu ích
+                    if self._is_valid_term(sub_t):
+                        inverted_index[sub_t][doc_id] += 1  # Increment TF
             
             self.total_docs += 1
         

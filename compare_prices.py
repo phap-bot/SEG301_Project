@@ -1,91 +1,64 @@
+import sys, os, time
 
-import sys
-import os
-import time
-
-# Thêm src/ranking và src/indexer vào path để import
 sys.path.append(os.path.join(os.getcwd(), 'src', 'ranking'))
 sys.path.append(os.path.join(os.getcwd(), 'src', 'indexer'))
 
-try:
-    from bm25 import BM25Ranker
-except ImportError as e:
-    print(f"❌ Lỗi: Không tìm thấy module ranking. Hãy chắc chắn bạn đang ở thư mục gốc của dự án.")
-    print(f"Chi tiết: {e}")
-    sys.exit(1)
+from bm25 import BM25Ranker
 
-def clear_screen():
-    os.system('cls' if os.name == 'nt' else 'clear')
+def fmt_price(doc):
+    p = doc.get('price', 0) or 0
+    o = doc.get('original_price', 0) or 0
+    try: p = float(p)
+    except: p = 0
+    try: o = float(o)
+    except: o = 0
+    if p > 0:
+        s = f"{p:,.0f} VND"
+        if o > p: s += f" (original {o:,.0f} VND)"
+        return s
+    if o > 0: return f"{o:,.0f} VND"
+    return "Contact for price"
+
+def show_results(results, ranker):
+    SEP = "-" * 65
+    for i, (doc_id, score, _) in enumerate(results, 1):
+        doc = ranker.get_doc_info(doc_id)
+        name     = doc.get('product_name', 'N/A')
+        platform = doc.get('platform', '?').upper()
+        price    = fmt_price(doc)
+        rating   = doc.get('rating', 0) or 0
+        reviews  = int(doc.get('review_count', 0) or 0)
+        url      = doc.get('product_url', '#')
+
+        print(SEP)
+        print(f"[{i}] {name}")
+        print(f"    Platform: {platform}  |  Price: {price}  |  ⭐ {rating} ({reviews:,} reviews)")
+        print(f"    🔗 {url}")
+    print(SEP)
 
 def main():
-    print("🚀 Đang khởi tạo hệ thống So sánh giá SEG301...")
-    try:
-        ranker = BM25Ranker(index_dir="index")
-    except Exception as e:
-        print(f"❌ Lỗi khi load index: {e}")
-        print("Hãy đảm bảo bạn đã chạy 'python src/indexer/spimi.py' trước.")
-        return
+    print("Initializing search engine...")
+    ranker = BM25Ranker(index_dir="index")
 
     while True:
-        clear_screen()
-        print("="*60)
-        print("🔍 HỆ THỐNG SO SÁNH GIÁ SẢN PHẨM (MOCK-UP CLI)")
-        print("="*60)
-        query = input("\nNhập tên sản phẩm muốn tìm (hoặc 'q' để thoát): ").strip()
-        
+        print("\n" + "=" * 60)
+        query = input("Search (q = quit): ").strip()
         if query.lower() == 'q':
+            print("Goodbye!")
             break
-        
         if not query:
             continue
 
-        print(f"\n🔎 Đang tìm kiếm '{query}' trên các nền tảng...")
-        start_time = time.time()
-        results = ranker.search(query, top_k=20)
-        duration = time.time() - start_time
+        start = time.time()
+        results = ranker.search(query, top_k=10)
+        elapsed = time.time() - start
+
+        print(f"\nResults for '{query}' [{elapsed:.2f}s]: {len(results)} products\n")
 
         if not results:
-            print("\n❌ Không tìm thấy sản phẩm nào phù hợp.")
-            input("\nNhấn Enter để tiếp tục...")
-            continue
-
-        print(f"✅ Tìm thấy {len(results)} kết quả trong {duration:.2f}s\n")
-        
-        # Gom nhóm theo platform
-        platforms = {}
-        for doc_id, score, _ in results:
-            doc = ranker.get_doc_info(doc_id)
-            p_name = doc.get('platform', 'Other')
-            if p_name not in platforms:
-                platforms[p_name] = []
-            platforms[p_name].append(doc)
-
-        # Hiển thị bảng so sánh giá
-        print(f"{'Nền tảng':<15} | {'Giá thấp nhất':<15} | {'Sản phẩm tiêu biểu'}")
-        print("-" * 80)
-        
-        all_sorted_docs = []
-        for p_name, docs in platforms.items():
-            # Tìm giá thấp nhất của nền tảng này trong top kết quả
-            docs_with_price = [d for d in docs if isinstance(d.get('price'), (int, float)) and d.get('price') > 0]
-            if not docs_with_price:
-                continue
-                
-            min_price_doc = min(docs_with_price, key=lambda x: x['price'])
-            print(f"{p_name:<15} | {min_price_doc['price']:>12,.0f}đ | {min_price_doc['product_name'][:40]}...")
-            all_sorted_docs.extend(docs)
-
-        print("\n" + "="*80)
-        print("CHI TIẾT TOP KẾT QUẢ (Sắp xếp theo độ liên quan):")
-        print("="*80)
-        
-        for i, (doc_id, score, _) in enumerate(results[:10], 1):
-            doc = ranker.get_doc_info(doc_id)
-            print(f"{i}. [{doc.get('platform').upper()}] {doc.get('product_name')}")
-            print(f"   💰 Giá: {doc.get('price', 0):,.0f}đ | ⭐ {doc.get('rating', 0)} ({doc.get('review_count', 0)} đánh giá)")
-            print(f"   🔗 Link: {doc.get('product_url', '#')}\n")
-
-        input("\nNhấn Enter để thực hiện tìm kiếm mới...")
+            print("No matching results found.")
+        else:
+            show_results(results, ranker)
 
 if __name__ == "__main__":
     main()
