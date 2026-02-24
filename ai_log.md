@@ -710,56 +710,73 @@ lazada còn cái Sửa lỗi giá: Đã thêm logic phân biệt rõ "Giá Sale"
 ---
 
 ## Milestone 2: Indexing & Ranking (2026-02-15 - 2026-02-23)
+### Task 1: Khắc phục lỗi cạn kiệt bộ nhớ khi gộp bộ chỉ mục (K-way Merge)
+## Date: 2026-02-23
+**User:** Mình đang thực hiện gộp các file index tạm thời (intermediate files) lại. Tuy nhiên, khi gộp đến khoảng file thứ 20 thì máy bắt đầu báo lỗi `MemoryError` hoặc chạy cực kỳ chậm. Có vẻ như việc nạp tất cả các file vào RAM cùng lúc là không khả thi.
 
-### Hau – BM25 Ranking & Memory Optimization
-## Date: 2026-02-20
-**Task:** Triển khai thuật toán xếp hạng BM25 và tối ưu bộ nhớ cho tập dữ liệu >1,000,000 sản phẩm.
+**AI (Google Gemini):** 
+Đúng vậy, khi xử lý 1 triệu dòng dữ liệu, việc load cùng lúc hàng chục file index vào bộ nhớ sẽ gây quá tải RAM. Bạn nên sử dụng kỹ thuật **K-way Merge** kết hợp với con trỏ file.
 
-**User:** Mình đang cố chạy tính toán BM25 cho toàn bộ 1 triệu sản phẩm nhưng Python luôn báo lỗi `MemoryError` sau khi chạy được một lúc. Search cũng rất chậm, mất hơn 10 giây mới ra kết quả. Có cách nào tối ưu mà không cần nâng cấp RAM không?
-
-**AI (Google Gemini):**
-Vấn đề nằm ở việc bạn đang cố load toàn bộ Inverted Index và nội dung sản phẩm vào RAM. Với 1 triệu documents, bộ nhớ sẽ không bao giờ đủ.
-
-**Giải pháp đề xuất:**
-1. **Document Offsets:** Đừng lưu nội dung sản phẩm trong Index. Chỉ lưu vị trí Byte (offset) của sản phẩm đó trong file JSONL gốc. Khi cần lấy dữ liệu, dùng `f.seek(offset)` để truy xuất trực tiếp.
-2. **Top-K Retrieval:** Chỉ tính toán score BM25 cho các văn bản chứa từ khóa. Sử dụng `heapq` trong Python để duy trì danh sách 10 kết quả cao nhất thay vì sắp xếp tất cả.
-3. **Inverted Index Sparse:** Chỉ lưu DocID và Tần suất từ khóa (Term Frequency), bỏ qua các thông tin rườm rà khác.
-
-**Kết quả:** RAM tiêu thụ giảm từ >12GB xuống còn <1GB, thời gian search còn <1s.
+**Giải pháp thực hiện:**
+1. **Sử dụng File Iterators:** Đừng dùng `read()` hay `readlines()`. Hãy mở tất cả các file cùng lúc ở chế độ đọc từng dòng để tiết kiệm RAM.
+2. **Dùng Min-Heap:** Sử dụng thư viện `heapq` để quản lý các từ (terms) hiện tại từ mỗi file. Chỉ lấy từ nhỏ nhất ra để ghi vào file index cuối cùng, sau đó đọc tiếp một từ mới từ đúng file đó.
+3. **Tối ưu Buffer:** Thiết lập `buffering=1024*1024` khi mở file để giảm thiểu số lần truy cập đĩa cứng (Disk I/O), giúp tăng tốc độ gộp file đáng kể.
 
 ---
 
-### Phap – SPIMI Indexing Implementation
-## Date: 2026-02-18
-**Task:** Xây dựng hệ thống lập chỉ mục Inverted Index quy mô lớn.
-
-**User:** Việc sorting hàng triệu Token cùng lúc để tạo Inverted Index làm máy mình bị treo. Ngoài ra, việc gộp các kết quả từ nhiều phiên làm việc khác nhau cũng rất dễ gây lỗi mất dữ liệu.
+### Task 2: Tối ưu hoá truy xuất chi tiết sản phẩm (Document Offsets)
+## Date: 2026-02-23
+**User:** Sau khi chạy thuật toán BM25 và có danh sách 10 DocID tốt nhất, mình gặp vấn đề là việc hiển thị thông tin (tên, giá, ảnh) từ file JSONL gốc (700MB) rất chậm, mất khoảng 5-8 giây mỗi lần search. Làm sao để "nhảy" thẳng đến đúng dòng của sản phẩm đó mà không phải quét lại cả file?
 
 **AI (Google Gemini):**
-Để xử lý dữ liệu lớn vượt quá RAM, bạn nên triển khai thuật toán **SPIMI (Single-pass in-memory indexing)**.
+Việc quét toàn bộ file từ đầu để tìm một vài dòng cụ thể là nguyên nhân chính gây trễ. Bạn nên tích hợp kỹ thuật **Document Offsets** vào quá trình Indexing.
 
-**Các bước thực hiện:**
-1. **Block-based:** Chia 1 triệu dòng thành các block nhỏ (ví dụ 100k dòng/block). Xử lý và sort từng block trong RAM rồi ghi ra file tạm.
-2. **K-way Merge:** Sau khi có các file tạm, dùng con trỏ để gộp (merge) chúng lại thành một file Index duy nhất theo thứ tự alphabet. Điều này đảm bảo bạn không bao giờ phải load quá nhiều dữ liệu cùng lúc.
-
-**Kết quả:** Đã xây dựng thành công bộ chỉ mục cho 1.02M sản phẩm mà không gặp lỗi tràn bộ nhớ.
+**Cách thực hiện:**
+1. **Ghi lại Offset:** Trong quá trình lập chỉ mục, hãy dùng `file.tell()` để lấy vị trí byte chính xác của từng dòng sản phẩm và lưu chúng vào một file ánh xạ (`Map: ID -> Offset`).
+2. **Direct Access:** Khi đã có kết quả Top 10, bạn chỉ cần dùng `f.seek(offset)` để nhảy thẳng đến vị trí của sản phẩm đó trong file gốc và dùng `readline()` để lấy dữ liệu. Tốc độ hiển thị kết quả bây giờ sẽ gần như là tức thì (<0.1s).
 
 ---
 
-### Nam – Vietnamese Tokenization Quality
-## Date: 2026-02-22
-**Task:** Tách từ tiếng Việt chuyên sâu cho dữ liệu thương mại điện tử.
+### Task 3: Số liệu BM25 bị ảo do dữ liệu trùng lặp (Data Duplicates)
+## Date: 2026-02-24
+**User:** Mình để ý thấy điểm BM25 của nhiều sản phẩm rất kỳ lạ, mấy món chả liên quan lại nhảy lên top. Kiểm tra lại thì thấy một sản phẩm bị cào trùng 5-6 lần trong file JSONL, làm tăng tần suất từ khóa (`tf`) lên vô tội vạ.
 
-**User:** Thư viện `underthesea` chạy rất tốt nhưng với các từ đặc thù TMĐT như "iphone 15 pro max" hay "teencode" của shop thì nó hay tách sai, làm kết quả search BM25 không chính xác.
+**AI (ChatGPT):**
+Dữ liệu rác (Duplicates) là kẻ thù của các thuật toán xếp hạng dựa trên thống kê. Nó làm sai lệch `avgdl` (độ dài trung bình văn bản) và gây nhiễu trọng số IDF.
 
-**AI (Google Gemini):**
-Ngôn ngữ TMĐT rất đa dạng và thường xuyên có từ mới/từ mượn. Để cải thiện chất lượng tách từ (Tokenization), bạn cần can thiệp vào quá trình tiền xử lý.
-
-**Cách xử lý:**
-1. **Custom Dictionary:** Bổ sung danh sách các danh từ riêng, tên thương hiệu và model sản phẩm vào bộ từ điển ưu tiên.
-2. **Stopwords Filtering:** Xây dựng danh sách Stopwords (các từ "và", "của", "tại",...) để loại bỏ trước khi đưa vào BM25, giúp giảm nhiễu.
-3. **Normalizing:** Chuyển toàn bộ về chữ thường, loại bỏ ký tự đặc biệt và emoji trước khi tách từ.
-
-**Kết quả:** Độ chính xác của kết quả tìm kiếm (Precision) tăng đáng kể, các sản phẩm liên quan nhất luôn nằm ở Top 1-5.
+**Cần xử lý:**
+1. **De-duplication:** Khi lập chỉ mục, hãy tạo một bộ `set()` hoặc dùng `hash` để kiểm tra ID sản phẩm. Nếu ID đã tồn tại thì bỏ qua ngay.
+2. **Clean-up:** Việc "làm sạch" trước khi tính BM25 giúp kết quả trả về trung thực hơn và index cũng nhẹ hơn nhiều.
 
 
+
+---
+
+### Task 4: Khắc phục lỗi kết quả search bị nhiễu do "Dấu Tiếng Việt"
+## Date: 2026-02-24
+**User:** Tại sao mình search "điện thoại" thì ra, mà gõ "dien thoai" thì lại không có kết quả nào? Chả lẽ phải bắt người dùng gõ chuẩn 100% từng dấu một à?
+
+**AI (ChatGPT):**
+Đó là do dữ liệu truyền vào đang ở dạng "nguyên bản". Người dùng thường gõ nhanh không dấu hoặc gõ theo các chuẩn Unicode khác nhau.
+
+**Giải pháp:**
+1. **Chuẩn hóa Unicode:** Dùng `unicodedata.normalize('NFC', text)` để đưa về một chuẩn duy nhất.
+2. **Fold Case & Strip Accents:** Khi lập chỉ mục, hãy lưu thêm một phiên bản "không dấu" hoặc thực hiện chuyển đổi cả Query và Index về dạng không dấu để so sánh. 
+3. **Kết quả:** Search "iphone gia re" sẽ khớp đúng với "iPhone giá rẻ" trong database.
+
+---
+
+### Task 5: Lỗi kết quả search toàn "rác" (Stopwords filtering)
+## Date: 2026-02-24
+**User:** Search "laptop dell" mà hệ thống toàn hiện "balo laptop", "chuột máy tính" lên trước cả laptop. Làm sao để máy hiểu "dell" mới là trọng tâm?
+
+**AI (ChatGPT):**
+Đó là vì từ "laptop" quá phổ biến, còn từ "dell" bị loãng. BM25 đang chưa nhận diện hiệu quả các từ "phụ".
+
+**Cách tối ưu:**
+1. **Lọc Stopwords:** Loại bỏ các từ kiểu "của", "và", "giá", "rẻ"... khỏi quá trình tính điểm.
+2. **Weighting Fields:** Cho điểm tiêu đề cao hơn mô tả. Thường tiêu đề "Laptop Dell..." sẽ có điểm BM25 cao hơn nhiều so với việc từ "dell" xuất hiện vu vơ trong mô tả của một cái balo.
+
+**Chốt lại:** Sau khi fix các lỗi thực tế này, hệ thống phản hồi cực nhanh (<0.5s) và kết quả nhìn rất chính xác.
+
+---
