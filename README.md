@@ -55,8 +55,8 @@ Ensure you have the following installed:
 
 **Step 1: Clone the repository**
 ```bash
-git clone https://github.com/your-group/SEG301-Project-GroupX
-cd SEG301-Project-GroupX
+git clone https://github.com/phap-bot/SEG301_Project
+cd SEG301_Project
 ```
 
 **Step 2: Python Environment Setup**
@@ -138,23 +138,14 @@ SEG301-Project-GroupX/
 │   └── sample.jsonl
 ├── docs/                    # Báo cáo và giải thích thuật toán
 │   ├── Milestone1_Report.pdf
-│   ├── Milestone1_Report.md
 │   └── Search_Explained.md
 └── src/                     # Source code chính
     ├── crawler/             # Milestone 1: Thu thập dữ liệu
-    │   ├── Crawl_Chotot/
-    │   ├── Crawl_Dienmayxanh/
-    │   ├── Crawl_FPTShop/
-    │   ├── Crawl_cellphones/
-    │   ├── Crawl_eBay/
-    │   ├── Crawl_lazada/
-    │   ├── Crawl_tiki/
-    │   ├── merge.py         # Gộp dữ liệu từ các platform
-    │   └── parser.py        # Tiền xử lý & Tokenization
+    │   ├── parser.py        # Tiền xử lý
+    │   └── merge.py         # Gộp dữ liệu từ các platform
     ├── indexer/             # Milestone 2: Tạo chỉ mục
     │   ├── spimi.py         # Thuật toán SPIMI
-    │   ├── build_index.py   # Script thực thi build index
-    │   └── vietnamese_tokenizer.py # Tokenizer cho tiếng Việt
+    │   └── build_index.py   # Script thực thi build index
     └── ranking/             # Milestone 2: Xếp hạng
         └── bm25.py          # Thuật toán BM25 (Code tay)
 ```
@@ -163,14 +154,14 @@ SEG301-Project-GroupX/
 
 ## 8. Development Timeline
 
-*   **Phase 1 (Weeks 1–4): [COMPLETED]**
+*   **Phase 1 (Weeks 1–4):**
     *   Setup environment.
     *   Implement crawlers for all platforms.
     *   Data cleaning and normalization.
-*   **Phase 2 (Weeks 5–7): [IN PROGRESS]**
+*   **Phase 2 (Weeks 5–7):**
     *   Implement SPIMI indexing algorithm.
     *   Develop BM25 ranking.
-*   **Phase 3 (Weeks 8–10): [UPCOMING]**
+*   **Phase 3 (Weeks 8–10):**
     *   Build Search UI.
     *   Final testing and presentation.
 
