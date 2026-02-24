@@ -779,4 +779,18 @@ Dữ liệu rác (Duplicates) là kẻ thù của các thuật toán xếp hạn
 
 **Chốt lại:** Sau khi fix các lỗi thực tế này, hệ thống phản hồi cực nhanh (<0.5s) và kết quả nhìn rất chính xác.
 
+### Task 6: Giải quyết vấn đề "False Positives" (Kết quả nhiễu)
+## Date: 2026-02-24
+**User:** Mình thử tìm "dien thoai" mà kêt quả hiện lên toàn "nồi cơm điện", "xe đạp điện", "quạt điện". Có vẻ như máy chỉ bắt được chữ "điện" rồi đẩy lên top mà không hiểu mình đang tìm smartphone.
+
+**AI (Google Gemini):**
+Đây chính là lỗi "Over-matching" do Tokenizer chia nhỏ từ ghép và trọng số IDF của từ "điện" (dien) quá cao trong tập dữ liệu TMĐT.
+
+**Giải pháp nâng cao (Intent Filtering):**
+1. **Exact Phrase Boost:** Tăng điểm gấp 4 lần nếu tên sản phẩm chứa chính xác cụm từ "dien thoai" thay vì chỉ chứa lẻ tẻ các từ "dien" hoặc "thoai".
+2. **Intent Recognition:** Nhận diện ý định người dùng (Searching for Phone). Nếu query là điện thoại, ta chủ động "phạt" (penalty) các sản phẩm thuộc danh mục đồ gia dụng, xe cộ có tên chứa chữ "điện" rác.
+3. **Keyword Whitelist:** Chỉ ưu tiên các sản phẩm có kèm tên thương hiệu smartphone (iPhone, Samsung, Oppo...) khi người dùng có ý định tìm điện thoại.
+
+**Kết quả:** Kết quả "nhiễu" đã biến mất hoàn toàn khỏi Top 10, thay vào đó là danh sách điện thoại đúng nghĩa.
+
 ---

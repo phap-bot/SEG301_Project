@@ -248,45 +248,55 @@ class BM25Ranker:
         print(f"   Smart Reranking top {len(raw_top)} results...")
         
         final_results = []
-        important_query_terms = [t for t in query_terms if t not in ['điện_thoại', 'máy', 'bán'] and len(self.inverted_index.get(t, [])) < self.total_docs * 0.2]
+        important_query_terms = [t for t in query_terms if t not in ['điện_thoại', 'máy', 'bán', 'dien', 'thoai'] and len(self.inverted_index.get(t, [])) < self.total_docs * 0.2]
+
+        # Nhận diện ý định tìm điện thoại (smartphone)
+        is_searching_phone = any(t in ['điện_thoại', 'smartphone', 'iphone', 'dien_thoai'] for t in query_terms) or \
+                             all(t in ['dien', 'thoai'] for t in query_terms)
 
         for doc_id, base_score in raw_top:
             doc = self.get_doc_info(doc_id)
             name = doc.get('product_name', '').lower()
-            name_tokens = [t.replace('_', ' ') for t in doc.get('tokens', [])]
-            name_str = " ".join(name_tokens)
+            name_tokens = [t.lower() for t in doc.get('tokens', [])]
+            name_str = " ".join(name_tokens).replace('_', ' ')
             
             boost = 1.0
             
             # --- CHIẾN LƯỢC 1: EXACT PHRASE MATCH ---
-            query_clean = " ".join(query_terms).replace('_', ' ')
+            query_clean = " ".join([t.replace('_', ' ') for t in query_terms])
             if query_clean in name_str:
-                boost *= 3.0 # Ưu tiên tuyệt đối nếu khớp nguyên cụm
+                boost *= 4.0 # Ưu tiên rất cao nếu khớp nguyên cụm (vd: "điện thoại")
             
-            # --- CHIẾN LƯỢC 2: PHÂN BIỆT MODEL & SPEC (VD: 16 vs 16GB) ---
-            # Nếu query có số (vd: 16) nhưng không có đơn vị kèm theo (gb)
-            # Mà trong tên sản phẩm số đó lại đi kèm đơn vị (16gb), thì giảm ưu tiên
+            # --- CHIẾN LƯỢC 2: PHÂN BIỆT MODEL & SPEC ---
             if not query_has_unit:
                 for t_query in query_terms:
                     if t_query.isdigit():
-                        # Kiểm tra xem trong tên, con số này có bị dán nhãn đơn vị không
                         pos = name_str.find(t_query)
                         if pos != -1:
                             after_text = name_str[pos + len(t_query):pos + len(t_query)+5].strip()
                             if any(after_text.startswith(u) for u in units):
-                                boost *= 0.4 # Phạt vì tìm model mà ra dung lượng
+                                boost *= 0.4
             
             # --- CHIẾN LƯỢC 3: ƯU TIÊN VỊ TRÍ ĐẦU ---
             if query_terms and name_tokens and query_terms[0] == name_tokens[0]:
                 boost *= 1.5
             
-            # --- CHIẾN LƯỢC 4: LỌC PHỤ KIỆN ---
+            # --- CHIẾN LƯỢC 4: LỌC PHỤ KIỆN & LỌC NHIỄU INTENT ---
             if not query_has_accessory:
-                # Nếu không tìm phụ kiện mà tên có phụ kiện ở ngay đầu, phạt cực nặng
                 if any(t in accessory_keywords for t in name_tokens[:3]):
                     boost *= 0.05
                 elif any(t in accessory_keywords for t in name_tokens):
                     boost *= 0.2
+
+            # --- CHIẾN LƯỢC 6: LỌC NHIỄU Đồ điện dùng (Nếu đang tìm điện thoại) ---
+            if is_searching_phone:
+                noise_keywords = {'nồi_cơm', 'xe_đạp', 'xe_máy', 'điện_lạnh', 'gia_dụng', 'nồi', 'quạt', 'bóng_đèn', 'ổ_cắm', 'xe_điện', 'dây_điện'}
+                # Nếu tiêu đề có các từ này mà KHÔNG có từ "điện_thoại" hoặc "iphone/samsung..." đi kèm thì phạt cực nặng
+                if any(noise in name_tokens for noise in noise_keywords):
+                    # Kiểm tra xem có keyword smartphone thực sự không
+                    has_real_phone_kw = any(kw in name_tokens for kw in ['điện_thoại', 'iphone', 'samsung', 'oppo', 'xiaomi', 'vivo', 'realme'])
+                    if not has_real_phone_kw:
+                        boost *= 0.01 # Coi như loại bỏ khỏi top đầu
             
             # --- CHIẾN LƯỢC 5: ĐỘ PHỦ TỪ KHÓA QUAN TRỌNG ---
             match_count = sum(1 for t in important_query_terms if t in name_tokens)
