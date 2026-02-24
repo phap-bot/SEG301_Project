@@ -79,19 +79,24 @@ pip install -r requirements.txt
 ## 5. Execution & Usage
 
 ### 5.1. Crawling Data
-Navigate to the crawler directory and start the process:
+Navigate to the specific crawler directory and start the process:
 
-```bash
-cd src/crawler/lazada
-node index.js
-```
+- **Example for Lazada:**
+  ```bash
+  cd src/crawler/Crawl_lazada
+  node index.js
+  ```
+- **Example for Shopee (or other Python crawlers):**
+  ```bash
+  python src/crawler/Crawl_eBay/spider.py
+  ```
 
 ### 5.2. Chạy Indexing & Ranking
 Sau khi đã thu thập dữ liệu, bạn cần chạy các script sau để xây dựng chỉ mục và tính toán thứ hạng:
 
 1.  **Xây dựng Index (SPIMI):**
     ```bash
-    python src/indexer/spimi.py
+    python src/indexer/build_index.py
     ```
 2.  **Chạy thuật toán xếp hạng (BM25):**
     ```bash
@@ -105,7 +110,7 @@ Sau khi đã thu thập dữ liệu, bạn cần chạy các script sau để x�
 ### 6.1. Data Responsibilities
 | Member | Platforms Assigned |
 |--------|--------------------|
-| **Nguyễn Lê Tấn Pháp** | Lazada, Điện Máy Xanh, FptShop |
+| **Nguyễn Lê Tấn Pháp** | Lazada, Điện Máy Xanh, FPTShop |
 | **Tô Thanh Hậu** | Tiki, Chợ Tốt, eBay  |
 | **Nguyễn Hải Nam** | Lazada, CellphoneS |
 
@@ -113,7 +118,7 @@ Sau khi đã thu thập dữ liệu, bạn cần chạy các script sau để x�
 Located in `data_sample/`. Contains 100–200 products per platform for testing.
 
 ### 6.3. Full Dataset Access
-*   **Link:** `https://drive.google.com/file/d/16BqO0aVf_b6F3fiIUdobhCmOW294OgiD/view?usp=sharing`
+*   **Link:** [Google Drive Download](https://drive.google.com/file/d/1yr-ArR_6JW6ku4mdp1W8UMpJTaDvmqNM/view?usp=sharing)
 *   **Total Size:** ~500MB (Compressed)
 *   **Scale:** ~1,000,000 products
 
@@ -133,14 +138,23 @@ SEG301-Project-GroupX/
 │   └── sample.jsonl
 ├── docs/                    # Báo cáo và giải thích thuật toán
 │   ├── Milestone1_Report.pdf
+│   ├── Milestone1_Report.md
 │   └── Search_Explained.md
 └── src/                     # Source code chính
     ├── crawler/             # Milestone 1: Thu thập dữ liệu
-    │   ├── parser.py        # Tiền xử lý
-    │   └── merge.py         # Gộp dữ liệu từ các platform
+    │   ├── Crawl_Chotot/
+    │   ├── Crawl_Dienmayxanh/
+    │   ├── Crawl_FPTShop/
+    │   ├── Crawl_cellphones/
+    │   ├── Crawl_eBay/
+    │   ├── Crawl_lazada/
+    │   ├── Crawl_tiki/
+    │   ├── merge.py         # Gộp dữ liệu từ các platform
+    │   └── parser.py        # Tiền xử lý & Tokenization
     ├── indexer/             # Milestone 2: Tạo chỉ mục
     │   ├── spimi.py         # Thuật toán SPIMI
-    │   └── build_index.py   # Script thực thi build index
+    │   ├── build_index.py   # Script thực thi build index
+    │   └── vietnamese_tokenizer.py # Tokenizer cho tiếng Việt
     └── ranking/             # Milestone 2: Xếp hạng
         └── bm25.py          # Thuật toán BM25 (Code tay)
 ```
@@ -149,14 +163,14 @@ SEG301-Project-GroupX/
 
 ## 8. Development Timeline
 
-*   **Phase 1 (Weeks 1–4):**
+*   **Phase 1 (Weeks 1–4): [COMPLETED]**
     *   Setup environment.
     *   Implement crawlers for all platforms.
     *   Data cleaning and normalization.
-*   **Phase 2 (Weeks 5–7):**
+*   **Phase 2 (Weeks 5–7): [IN PROGRESS]**
     *   Implement SPIMI indexing algorithm.
     *   Develop BM25 ranking.
-*   **Phase 3 (Weeks 8–10):**
+*   **Phase 3 (Weeks 8–10): [UPCOMING]**
     *   Build Search UI.
     *   Final testing and presentation.
 
