@@ -61,3 +61,6 @@ progress.json
 debug_*.png
 chromedriver.exe
 *.zip
+private_docs/
+bm25
+all_files.txt

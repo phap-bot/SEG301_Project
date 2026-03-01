@@ -354,6 +354,17 @@ class BM25Ranker:
                 elif noise_elsewhere >= 1:
                     boost *= (0.35 ** noise_elsewhere) # Phạt vừa nếu "điện thoại ... xác"
 
+            # --- CHIẾN LƯỢC 5: PHÂN BIỆT MODEL VS DUNG LƯỢNG (Unit vs Model) ---
+            # Ví dụ: Tìm "iphone 16" thì không nên ra "iphone 6 16gb"
+            if not query_has_unit:
+                for i, t in enumerate(norm_tokens):
+                    # Nếu từ trong doc khớp với một từ trong query (mà từ đó là số)
+                    if t in query_terms and t.isdigit():
+                        # Kiểm tra xem từ ngay sau nó trong doc có phải là đơn vị (gb, ram...) không
+                        if i + 1 < len(norm_tokens) and norm_tokens[i+1] in units:
+                            boost *= 0.1 # Phạt nặng vì đây là khớp dung lượng, không phải khớp model
+                            break
+
 
             final_results.append((doc_id, base_score * boost, query))
         
