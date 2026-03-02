@@ -3,7 +3,6 @@ BM25 Ranking Algorithm Implementation
 
 """
 
-import pickle
 import json
 import math
 from collections import Counter
@@ -86,15 +85,22 @@ class BM25Ranker:
         print("📚 Loading index...")
         
         # Load inverted index
-        index_file = f"{self.index_dir}/inverted_index.pkl"
-        with open(index_file, 'rb') as f:
-            self.inverted_index = pickle.load(f)
+        index_file = f"{self.index_dir}/inverted_index.json"
+        with open(index_file, 'r', encoding='utf-8') as f:
+            raw_index = json.load(f)
+        
+        # Chuyển đổi inner keys từ string sang int (doc_id)
+        self.inverted_index = {}
+        for term, doc_freqs in raw_index.items():
+            self.inverted_index[term] = {int(doc_id): tf for doc_id, tf in doc_freqs.items()}
+            
         print(f"  ✓ Loaded inverted index: {len(self.inverted_index):,} terms")
         
         # Load document metadata
-        metadata_file = f"{self.index_dir}/doc_metadata.pkl"
-        with open(metadata_file, 'rb') as f:
-            self.doc_lengths = pickle.load(f)
+        metadata_file = f"{self.index_dir}/doc_metadata.json"
+        with open(metadata_file, 'r', encoding='utf-8') as f:
+            raw_lengths = json.load(f)
+        self.doc_lengths = {int(k): v for k, v in raw_lengths.items()}
         print(f"  ✓ Loaded doc metadata: {len(self.doc_lengths):,} documents")
         
         # Load statistics
@@ -106,13 +112,14 @@ class BM25Ranker:
         self.avg_doc_length = self.stats['average_doc_length']
         
         # Load doc offsets
-        offsets_file = f"{self.index_dir}/doc_offsets.pkl"
+        offsets_file = f"{self.index_dir}/doc_offsets.json"
         try:
-            with open(offsets_file, 'rb') as f:
-                self.doc_offsets = pickle.load(f)
+            with open(offsets_file, 'r', encoding='utf-8') as f:
+                raw_offsets = json.load(f)
+            self.doc_offsets = {int(k): v for k, v in raw_offsets.items()}
             print(f"  ✓ Loaded doc offsets: {len(self.doc_offsets):,} documents")
         except FileNotFoundError:
-            print("  ⚠️ Warning: doc_offsets.pkl not found. Search results retrieval will be slow.")
+            print("  ⚠️ Warning: doc_offsets.json not found. Search results retrieval will be slow.")
             self.doc_offsets = {}
 
         print(f"  ✓ Total docs: {self.total_docs:,}")
