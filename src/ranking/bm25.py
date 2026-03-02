@@ -1,6 +1,6 @@
 """
 BM25 Ranking Algorithm Implementation
-Code tay hoàn toàn - KHÔNG dùng thư viện rank() có sẵn
+
 """
 
 import pickle
