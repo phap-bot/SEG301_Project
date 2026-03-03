@@ -243,9 +243,9 @@ class SPIMIIndexer:
         timing["phase1_block"] = time.time() - t1_start
         print(f"  ⏱  Phase 1 done in {timing['phase1_block']:.2f}s")
 
-        # ── Phase 2: Merge ─────────────────────────────────────────────────────
         t2_start = time.time()
         final_index = self.merge_blocks()
+
         timing["phase2_merge"] = time.time() - t2_start
         print(f"  ⏱  Phase 2 done in {timing['phase2_merge']:.2f}s")
 

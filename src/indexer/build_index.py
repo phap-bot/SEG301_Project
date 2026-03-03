@@ -135,8 +135,6 @@ def main():
 
     # ─── Ghi báo cáo ra file .txt ──────────────────────────────────────────────
     report = {
-        "started_at": started_at,
-        "finished_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "total_wall_time_seconds": round(total_elapsed, 3),
         "total_wall_time_human": format_duration(total_elapsed),
         "corpus": {
