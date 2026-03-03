@@ -10,12 +10,8 @@ from typing import Dict, List, Tuple
 import sys
 import os
 
-# Thêm đường dẫn để import tokenizer (hoạt động cả khi chạy trực tiếp lẫn qua -m)
-_indexer_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'indexer')
-if _indexer_path not in sys.path:
-    sys.path.insert(0, _indexer_path)
-from vietnamese_tokenizer import tokenize
 import unicodedata
+
 
 def normalize_text(text: str, remove_accents: bool = False) -> str:
     if not text:
@@ -240,7 +236,7 @@ class BM25Ranker:
         """
         Search thông minh: BM25 + Intent Recognition + Smart Reranking
         """
-        raw_query_terms = tokenize(query)
+        raw_query_terms = query.lower().split()
         if not raw_query_terms:
             return []
             
