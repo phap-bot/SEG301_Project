@@ -112,7 +112,7 @@ The system achieves high efficiency on standard hardware:
 | Metric | Result |
 | :--- | :--- |
 | **Total Documents** | 1,028,125 |
-| **Total Indexing Time** | 13m 46s (Simulated) |
+| **Total Indexing Time** | 3m 46s (Simulated) |
 | **Search Speed** | 0.1s – 0.7s (Instant) |
 | **Peak Memory Usage** | < 500MB (Indexing) |
 | **Total Index Size** | 175 MB |
