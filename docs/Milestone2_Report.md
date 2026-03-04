@@ -113,7 +113,11 @@ The system achieves high efficiency on standard hardware:
 | :--- | :--- |
 | **Total Documents** | 1,028,125 |
 | **Total Indexing Time** | 6m 39s |
+<<<<<<< HEAD
 | **Search Speed** | 1s |
+=======
+| **Search Speed** | < 1s |
+>>>>>>> 15b6858 (feat: integrate on-the-fly tokenization and update performance metrics in report)
 | **Peak Memory Usage** | < 500MB |
 | **Total Index Size** | 175 MB |
 

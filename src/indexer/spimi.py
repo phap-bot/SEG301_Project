@@ -11,6 +11,7 @@ from collections import defaultdict
 from typing import Dict, List, Tuple
 import heapq
 import unicodedata
+from underthesea import word_tokenize
 
 def strip_accents(s):
    """Loại bỏ dấu tiếng Việt mạnh mẽ (bao gồm cả đ -> d) và đồng bộ dấu gạch dưới"""
@@ -73,7 +74,17 @@ class SPIMIIndexer:
         
         for doc in documents:
             doc_id = self.total_docs
-            tokens = doc.get('tokens', [])
+            tokens = doc.get('tokens')
+            
+            # Nếu chưa có tokens (input là file raw), thực hiện tách từ on-the-fly
+            if tokens is None or not tokens:
+                product_name = doc.get('product_name', '')
+                if product_name:
+                    # Tách từ tiếng Việt chuyên sâu
+                    segmented = word_tokenize(product_name, format="text")
+                    tokens = segmented.split()
+                else:
+                    tokens = []
             
             # Lưu document length cho BM25
             self.doc_lengths[doc_id] = len(tokens)
@@ -92,7 +103,11 @@ class SPIMIIndexer:
             self.total_docs += 1
         
         # Convert defaultdict to regular dict
-        return {term: dict(doc_freqs) for term, doc_freqs in inverted_index.items()}
+        result = {term: dict(doc_freqs) for term, doc_freqs in inverted_index.items()}
+        
+        time.sleep(1)
+        
+        return result
     
     def _is_valid_term(self, term: str) -> bool:
         """

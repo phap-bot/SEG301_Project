@@ -42,7 +42,7 @@ def main():
     parser.add_argument(
         '--input',
         default='data_1tr_clean_tokenized.jsonl',
-        help='Input JSONL file (default: data_1tr_clean_tokenized.jsonl)'
+        help='Input JSONL file (supports raw data or tokenized data)'
     )
     parser.add_argument(
         '--output',
