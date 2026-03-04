@@ -4,7 +4,6 @@ import os
 from collections import Counter
 from underthesea import word_tokenize
 
-# ================= CONFIG =================
 INPUT_FILE = r"F:\merge\data_1tr_raw.jsonl"
 OUTPUT_FILE = r"F:\merge\data_1tr_clean_tokenized.jsonl"
 LOG_FILE = r"F:\merge\logs\clean_tokenize.log"
@@ -30,7 +29,6 @@ UI_NOISE = re.compile(
     flags=re.IGNORECASE
 )
 
-# ================= CLEAN FUNCTION =================
 def clean_text(text):
     if not text:
         return ""
@@ -52,7 +50,6 @@ def clean_text(text):
 
     return text.lower()
 
-# ================= COLLECT 11 SCHEMA =================
 def collect_text_from_fields(obj, fields):
     parts = []
 

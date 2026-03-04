@@ -1,8 +1,3 @@
-"""
-Build Index Script
-Wrapper script để build index từ data file, với báo cáo số liệu chi tiết
-"""
-
 import sys
 import os
 import argparse
@@ -13,7 +8,6 @@ from spimi import SPIMIIndexer
 
 
 def get_file_size_mb(path: str) -> float:
-    """Trả về kích thước file tính bằng MB"""
     try:
         return os.path.getsize(path) / (1024 * 1024)
     except FileNotFoundError:
@@ -21,7 +15,6 @@ def get_file_size_mb(path: str) -> float:
 
 
 def format_duration(seconds: float) -> str:
-    """Định dạng thời gian thành chuỗi dễ đọc"""
     if seconds < 60:
         return f"{seconds:.2f}s"
     elif seconds < 3600:
@@ -91,7 +84,6 @@ def main():
     wall_end = time.time()
     total_elapsed = wall_end - wall_start
 
-    # ─── Thu thập số liệu file output ─────────────────────────────────────────
     output_files = {
         "inverted_index.json": os.path.join(args.output, "inverted_index.json"),
         "doc_metadata.json":   os.path.join(args.output, "doc_metadata.json"),
@@ -100,8 +92,7 @@ def main():
     }
     file_sizes = {name: get_file_size_mb(path) for name, path in output_files.items()}
     total_index_size = sum(file_sizes.values())
-
-    # Đọc stats từ index_stats.json (được spimi ghi)
+    
     stats_path = os.path.join(args.output, "index_stats.json")
     with open(stats_path, 'r', encoding='utf-8') as f:
         idx_stats = json.load(f)
@@ -110,8 +101,6 @@ def main():
     print("\n" + "="*80)
     print("📊  INDEXING REPORT")
     print("="*80)
-    print(f"  Started at         : {started_at}")
-    print(f"  Finished at        : {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"  Total wall time    : {format_duration(total_elapsed)}")
     print()
     print("  ── CORPUS ──────────────────────────────────────────────────")
