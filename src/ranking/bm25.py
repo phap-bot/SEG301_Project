@@ -1,8 +1,8 @@
 """
 BM25 Ranking Algorithm Implementation
+Code tay hoàn toàn - KHÔNG dùng thư viện rank() có sẵn
 """
 
-import pickle
 import json
 import math
 from collections import Counter
@@ -10,12 +10,8 @@ from typing import Dict, List, Tuple
 import sys
 import os
 
-# Thêm đường dẫn để import tokenizer (hoạt động cả khi chạy trực tiếp lẫn qua -m)
-_indexer_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'indexer')
-if _indexer_path not in sys.path:
-    sys.path.insert(0, _indexer_path)
-from vietnamese_tokenizer import tokenize
 import unicodedata
+
 
 def normalize_text(text: str, remove_accents: bool = False) -> str:
     if not text:
@@ -85,15 +81,22 @@ class BM25Ranker:
         print("📚 Loading index...")
         
         # Load inverted index
-        index_file = f"{self.index_dir}/inverted_index.pkl"
-        with open(index_file, 'rb') as f:
-            self.inverted_index = pickle.load(f)
+        index_file = f"{self.index_dir}/inverted_index.json"
+        with open(index_file, 'r', encoding='utf-8') as f:
+            raw_index = json.load(f)
+        
+        # Chuyển đổi inner keys từ string sang int (doc_id)
+        self.inverted_index = {}
+        for term, doc_freqs in raw_index.items():
+            self.inverted_index[term] = {int(doc_id): tf for doc_id, tf in doc_freqs.items()}
+            
         print(f"  ✓ Loaded inverted index: {len(self.inverted_index):,} terms")
         
         # Load document metadata
-        metadata_file = f"{self.index_dir}/doc_metadata.pkl"
-        with open(metadata_file, 'rb') as f:
-            self.doc_lengths = pickle.load(f)
+        metadata_file = f"{self.index_dir}/doc_metadata.json"
+        with open(metadata_file, 'r', encoding='utf-8') as f:
+            raw_lengths = json.load(f)
+        self.doc_lengths = {int(k): v for k, v in raw_lengths.items()}
         print(f"  ✓ Loaded doc metadata: {len(self.doc_lengths):,} documents")
         
         # Load statistics
@@ -105,13 +108,14 @@ class BM25Ranker:
         self.avg_doc_length = self.stats['average_doc_length']
         
         # Load doc offsets
-        offsets_file = f"{self.index_dir}/doc_offsets.pkl"
+        offsets_file = f"{self.index_dir}/doc_offsets.json"
         try:
-            with open(offsets_file, 'rb') as f:
-                self.doc_offsets = pickle.load(f)
+            with open(offsets_file, 'r', encoding='utf-8') as f:
+                raw_offsets = json.load(f)
+            self.doc_offsets = {int(k): v for k, v in raw_offsets.items()}
             print(f"  ✓ Loaded doc offsets: {len(self.doc_offsets):,} documents")
         except FileNotFoundError:
-            print("  ⚠️ Warning: doc_offsets.pkl not found. Search results retrieval will be slow.")
+            print("  ⚠️ Warning: doc_offsets.json not found. Search results retrieval will be slow.")
             self.doc_offsets = {}
 
         print(f"  ✓ Total docs: {self.total_docs:,}")
@@ -232,7 +236,7 @@ class BM25Ranker:
         """
         Search thông minh: BM25 + Intent Recognition + Smart Reranking
         """
-        raw_query_terms = tokenize(query)
+        raw_query_terms = query.lower().split()
         if not raw_query_terms:
             return []
             
@@ -352,6 +356,17 @@ class BM25Ranker:
                     boost *= (0.05 ** noise_in_front) # Phạt cực nặng nếu "Xác..." đứng đầu
                 elif noise_elsewhere >= 1:
                     boost *= (0.35 ** noise_elsewhere) # Phạt vừa nếu "điện thoại ... xác"
+
+            # --- CHIẾN LƯỢC 5: PHÂN BIỆT MODEL VS DUNG LƯỢNG (Unit vs Model) ---
+            # Ví dụ: Tìm "iphone 16" thì không nên ra "iphone 6 16gb"
+            if not query_has_unit:
+                for i, t in enumerate(norm_tokens):
+                    # Nếu từ trong doc khớp với một từ trong query (mà từ đó là số)
+                    if t in query_terms and t.isdigit():
+                        # Kiểm tra xem từ ngay sau nó trong doc có phải là đơn vị (gb, ram...) không
+                        if i + 1 < len(norm_tokens) and norm_tokens[i+1] in units:
+                            boost *= 0.1 # Phạt nặng vì đây là khớp dung lượng, không phải khớp model
+                            break
 
 
             final_results.append((doc_id, base_score * boost, query))

@@ -118,7 +118,7 @@ Sau khi đã thu thập dữ liệu, bạn cần chạy các script sau để x�
 Located in `data_sample/`. Contains 100–200 products per platform for testing.
 
 ### 6.3. Full Dataset Access
-*   **Link:** [Google Drive Download](https://drive.google.com/file/d/1yr-ArR_6JW6ku4mdp1W8UMpJTaDvmqNM/view?usp=sharing)
+*   **Link:** [Google Drive Download](https://drive.google.com/file/d/1U9lkNUmLp5H08vthkfQKPEZ2oy1ZIkAM/view?usp=sharing)
 *   **Total Size:** ~500MB (Compressed)
 *   **Scale:** ~1,000,000 products
 
