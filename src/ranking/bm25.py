@@ -40,7 +40,7 @@ class BM25Ranker:
         self.stats = None
         self.avg_doc_length = 0
         self.total_docs = 0
-        self.split_cache = {} # Bộ nhớ đệm cho việc tách từ dính chữ
+        self.split_cache = {}
         
         self.load_index()
     
@@ -89,7 +89,7 @@ class BM25Ranker:
         if word in self.split_cache: return self.split_cache[word]
         
         n = len(word)
-        # dp[i] = (max_score, best_split_index) - Lưu điểm số cao nhất và vị trí cắt tốt nhất
+        # dp[i] = (max_score, best_split_index)
         dp = [(-1.0, -1)] * (n + 1)
         dp[0] = (0.0, 0)
         
@@ -103,20 +103,19 @@ class BM25Ranker:
                 if part in self.inverted_index:
                     is_valid = True
                     df = len(self.inverted_index[part])
-                    # Sử dụng log tần suất và nhân với bình phương độ dài.
-                    # Để ưu tiên tách 'redminote' -> 'redmi' + 'note', 
-                    # chúng ta đảm bảo tổng điểm các phần tách có thể lớn hơn điểm của từ nguyên bản.
-                    part_score = math.log(df + 1) * (len(part) ** 1.5) 
+                    # Tăng trọng số cho độ dài để tránh việc tách quá vụn (ví dụ: 'iphone' -> 'i', 'phone')
+                    # Nhưng vẫn đủ để 'redmi' + 'note' thắng 'redminote'
+                    part_score = math.log(df + 1) * (len(part) ** 1.8) 
                 elif part.isdigit():
                     is_valid = True
-                    part_score = math.log(self.total_docs / 100 + 1) * (len(part) ** 1.5)
+                    # Phạt nhẹ các chuỗi số đơn lẻ để ưu tiên các từ có nghĩa
+                    part_score = math.log(self.total_docs / 100 + 1) * (len(part) ** 1.2)
                 
                 if is_valid:
                     current_total_score = dp[j][0] + part_score
                     if current_total_score > dp[i][0]:
                         dp[i] = (current_total_score, j)
         
-        # Truy vết lại để lấy kết quả tách từ
         if dp[n][1] == -1:
             return [word]
             
@@ -169,10 +168,7 @@ class BM25Ranker:
         query_terms = []
         for t in raw_query_terms:
             norm_t = strip_accents(t, keep_underscore=True)
-            
-            # Sử dụng thuật toán tách từ động cho các từ không thấy trong index hoặc có chứa số
-            # Không tách các từ đã có dấu gạch dưới (đã được underthesea phân đoạn)
-            if (norm_t not in self.inverted_index or re.search(r'\d', norm_t)) and '_' not in norm_t:
+            if '_' not in norm_t:
                 splits = self._split_stuck_word_dynamic(norm_t)
                 if len(splits) > 1:
                     query_terms.extend(splits)
@@ -185,13 +181,10 @@ class BM25Ranker:
             if '_' in norm_t:
                 query_terms.extend(norm_t.split('_'))
         
-        # Remove duplicates and very short terms (except digits)
         query_terms = [t for t in dict.fromkeys(query_terms) if len(t) > 1 or t.isdigit()]
         
         print(f"Searching: '{query}' (Terms: {query_terms})")
         
-        # 2. Xác định "Stopwords" (từ phổ biến) và "Noise" (từ phụ kiện) một cách động
-        # Stopwords: Tần suất rất cao. Noise: IDF thấp so với các từ khóa chính.
         term_metadata = {}
         for t in query_terms:
             if t in self.inverted_index:
@@ -201,12 +194,8 @@ class BM25Ranker:
             else:
                 term_metadata[t] = {'df': 0, 'idf': 0}
 
-        # Stopwords động: Các từ xuất hiện trong hơn 5% tổng số tài liệu
         dynamic_stopwords = {t for t, meta in term_metadata.items() if meta['df'] > self.total_docs * 0.05}
         
-        # Dynamic Accessory Detection:
-        # Instead of a list, we look for terms with lower-than-average IDF in the query
-        # excluding very high-frequency stopwords.
         valid_idfs = [meta['idf'] for meta in term_metadata.values() if meta['idf'] > 0]
         max_idf = max(valid_idfs) if valid_idfs else 0
         mean_idf = sum(valid_idfs) / len(valid_idfs) if valid_idfs else 0
@@ -214,7 +203,6 @@ class BM25Ranker:
         # Heuristic: Phát hiện các từ phụ (như phụ kiện) dựa trên IDF thấp so với đỉnh cao của query.
         potential_noise = {t for t, meta in term_metadata.items() if meta['idf'] < max_idf * 0.4 and t not in dynamic_stopwords}
         
-        # 3. Vòng lặp tính điểm BM25
         doc_scores = {}
         for term in query_terms:
             if term not in self.inverted_index:
@@ -248,8 +236,6 @@ class BM25Ranker:
         
         final_results = []
         
-        # Stopwords KHÔNG DẤU (vì cả index lẫn query đã được chuẩn hóa)
-        # Các từ quan trọng để tính Coordination Factor (Tỷ lệ khớp)
         important_q_terms = [t for t in query_terms if t not in dynamic_stopwords and len(t) > 1]
         if not important_q_terms: important_q_terms = query_terms[:]
         
@@ -261,9 +247,7 @@ class BM25Ranker:
             if not doc:
                 continue
             
-            # Doc tokens đã được chuẩn hóa không dấu trong file data
             doc_tokens = doc.get('tokens', [])
-            # Chuẩn hóa thêm cho chắc (phòng trường hợp token cũ còn dấu)
             norm_tokens = []
             for t in doc_tokens:
                 norm_tokens.extend(strip_accents(t).split())
@@ -274,8 +258,7 @@ class BM25Ranker:
             
             boost = 1.0
 
-            # --- Bảo vệ truy vấn đơn lẻ ---
-            # Nếu truy vấn chỉ có 1 từ quan trọng, phạt các tiêu đề quá chung chung hoặc quá dài
+            # Bảo vệ truy vấn đơn lẻ
             if len(query_terms) == 1 and query_terms[0] not in dynamic_stopwords:
                 q_term = query_terms[0]
                 q_pos = name_tokens.index(q_term) if q_term in name_tokens else -1
@@ -296,7 +279,6 @@ class BM25Ranker:
                 # Bình phương tỷ lệ để thưởng mạnh cho các tiêu đề khớp hoàn toàn
                 boost *= (match_ratio ** 2)
             
-            # Thưởng thêm nếu khớp TẤT CẢ các từ quan trọng
             if len(matched_terms) == len(query_term_idfs) and len(query_term_idfs) > 1:
                 boost *= 1.5
 
@@ -341,16 +323,14 @@ class BM25Ranker:
                     elif min_dist <= 4:
                         boost *= 1.3 # Tương đối gần
             
-            # 4. Thưởng cho vị trí xuất hiện (Nhẹ nhàng hơn)
             if query_terms and norm_tokens:
-                # Nếu bất kỳ từ nào trong 2 từ đầu của query khớp với 2 token đầu của tên
+                # Vị trí xuất hiện
                 first_two_q = set(query_terms[:2])
                 first_two_doc = set(norm_tokens[:2])
                 if first_two_q.intersection(first_two_doc):
-                    boost *= 1.2 # Reduced from 1.5 and made more flexible
+                    boost *= 1.2
             
-            # 5. Hình phạt động cho "Nhiễu" và Chất lượng
-            # Phạt các tài liệu có tỷ lệ từ khóa chung chung quá cao hoặc các từ "nhiễu" (IDF thấp).
+            # Hình phạt động cho "Nhiễu" và Chất lượng
             doc_noise_count = sum(1 for t in name_tokens if self.calculate_idf(t) < 1.0)
             if doc_noise_count > 5:
                 boost *= 0.5
@@ -381,11 +361,8 @@ class BM25Ranker:
             print(f"Error retrieving doc {doc_id}: {e}")
             return {}
 
-
 if __name__ == "__main__":
     ranker = BM25Ranker(index_dir="index")
-    
-    # Test search
     results = ranker.search("dien thoai", top_k=10)
     
     print("="*80)
