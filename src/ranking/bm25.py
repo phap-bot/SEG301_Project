@@ -1,5 +1,6 @@
 import json
 import math
+import re
 from collections import Counter
 from typing import Dict, List, Tuple
 import sys
@@ -39,11 +40,12 @@ class BM25Ranker:
         self.stats = None
         self.avg_doc_length = 0
         self.total_docs = 0
+        self.split_cache = {} # Bộ nhớ đệm cho việc tách từ dính chữ
         
         self.load_index()
     
     def load_index(self):
-        print("📚 Loading index...")
+        print("Loading index...")
         index_file = f"{self.index_dir}/inverted_index.json"
         with open(index_file, 'r', encoding='utf-8') as f:
             raw_index = json.load(f)
@@ -52,13 +54,13 @@ class BM25Ranker:
         for term, doc_freqs in raw_index.items():
             self.inverted_index[term] = {int(doc_id): tf for doc_id, tf in doc_freqs.items()}
             
-        print(f"  ✓ Loaded inverted index: {len(self.inverted_index):,} terms")
+        print(f"  [OK] Loaded inverted index: {len(self.inverted_index):,} terms")
         
         metadata_file = f"{self.index_dir}/doc_metadata.json"
         with open(metadata_file, 'r', encoding='utf-8') as f:
             raw_lengths = json.load(f)
         self.doc_lengths = {int(k): v for k, v in raw_lengths.items()}
-        print(f"  ✓ Loaded doc metadata: {len(self.doc_lengths):,} documents")
+        print(f"  [OK] Loaded doc metadata: {len(self.doc_lengths):,} documents")
         
         stats_file = f"{self.index_dir}/index_stats.json"
         with open(stats_file, 'r', encoding='utf-8') as f:
@@ -72,14 +74,64 @@ class BM25Ranker:
             with open(offsets_file, 'r', encoding='utf-8') as f:
                 raw_offsets = json.load(f)
             self.doc_offsets = {int(k): v for k, v in raw_offsets.items()}
-            print(f"  ✓ Loaded doc offsets: {len(self.doc_offsets):,} documents")
+            print(f"  [OK] Loaded doc offsets: {len(self.doc_offsets):,} documents")
         except FileNotFoundError:
-            print("  ⚠️ Warning: doc_offsets.json not found. Search results retrieval will be slow.")
+            print("  [WARN] Warning: doc_offsets.json not found. Search results retrieval will be slow.")
             self.doc_offsets = {}
 
-        print(f"  ✓ Total docs: {self.total_docs:,}")
-        print(f"  ✓ Avg doc length: {self.avg_doc_length:.2f}")
+        print(f"  [OK] Total docs: {self.total_docs:,}")
+        print(f"  [OK] Avg doc length: {self.avg_doc_length:.2f}")
         print()
+
+    def _split_stuck_word_dynamic(self, word: str) -> List[str]:
+        """Sử dụng quy hoạch động để tách các từ dính chữ dựa trên tần suất trong index."""
+        if not word: return []
+        if word in self.split_cache: return self.split_cache[word]
+        
+        n = len(word)
+        # dp[i] = (max_score, best_split_index) - Lưu điểm số cao nhất và vị trí cắt tốt nhất
+        dp = [(-1.0, -1)] * (n + 1)
+        dp[0] = (0.0, 0)
+        
+        for i in range(1, n + 1):
+            for j in range(max(0, i - 15), i):
+                part = word[j:i]
+                
+                is_valid = False
+                part_score = 0
+                
+                if part in self.inverted_index:
+                    is_valid = True
+                    df = len(self.inverted_index[part])
+                    # Sử dụng log tần suất và nhân với bình phương độ dài.
+                    # Để ưu tiên tách 'redminote' -> 'redmi' + 'note', 
+                    # chúng ta đảm bảo tổng điểm các phần tách có thể lớn hơn điểm của từ nguyên bản.
+                    part_score = math.log(df + 1) * (len(part) ** 1.5) 
+                elif part.isdigit():
+                    is_valid = True
+                    part_score = math.log(self.total_docs / 100 + 1) * (len(part) ** 1.5)
+                
+                if is_valid:
+                    current_total_score = dp[j][0] + part_score
+                    if current_total_score > dp[i][0]:
+                        dp[i] = (current_total_score, j)
+        
+        # Truy vết lại để lấy kết quả tách từ
+        if dp[n][1] == -1:
+            return [word]
+            
+        result = []
+        curr = n
+        while curr > 0:
+            prev = dp[curr][1]
+            result.append(word[prev:curr])
+            curr = prev
+            
+        final_splits = result[::-1]
+        
+        # Heuristic: Ưu tiên tách từ ngay cả khi từ đó tồn tại trong index, nếu việc tách mang lại độ phủ/trọng số tốt hơn.
+        self.split_cache[word] = final_splits
+        return final_splits
     
     def calculate_idf(self, term: str) -> float:
         if term not in self.inverted_index:
@@ -116,41 +168,60 @@ class BM25Ranker:
             
         query_terms = []
         for t in raw_query_terms:
-            # Chuẩn hóa không dấu nhưng GIỮ lại dấu gạch dưới (_) để khớp cụm từ
             norm_t = strip_accents(t, keep_underscore=True)
+            
+            # Sử dụng thuật toán tách từ động cho các từ không thấy trong index hoặc có chứa số
+            # Không tách các từ đã có dấu gạch dưới (đã được underthesea phân đoạn)
+            if (norm_t not in self.inverted_index or re.search(r'\d', norm_t)) and '_' not in norm_t:
+                splits = self._split_stuck_word_dynamic(norm_t)
+                if len(splits) > 1:
+                    query_terms.extend(splits)
+                    print(f"  [Auto-Split] '{norm_t}' -> {splits}")
+                    continue
+            
             query_terms.append(norm_t)
             
-            # Nếu là từ ghép, thêm cả các từ thành phần để tăng kết quả (recall)
+            # Nếu từ có dấu gạch dưới (từ underthesea), thêm cả các phần lẻ vào
             if '_' in norm_t:
                 query_terms.extend(norm_t.split('_'))
         
-        # Bỏ trùng lặp
-        query_terms = list(dict.fromkeys(query_terms))
+        # Remove duplicates and very short terms (except digits)
+        query_terms = [t for t in dict.fromkeys(query_terms) if len(t) > 1 or t.isdigit()]
         
-        print(f"🔍 Searching: '{query}' (Terms: {query_terms})")
+        print(f"Searching: '{query}' (Terms: {query_terms})")
         
-        # Intent Recognition
-        NOISE_WORDS = {
-            'xac', 'vo', 'op', 'man', 'kinh', 'cuong', 'dan', 'mieng', 'tam', 
-            'sac', 'cap', 'day', 'dock', 'hub', 'adapter', 'tai', 'nguyen',
-            'phu', 'lop', 'vanh', 'gioang', 'loi', 'may', 'dong', 'nhot', 'dau', 'giam',
-            'pin', 'ram', 'ssd', 'hdd', 'ban', 'phim', 'quat', 'led', 'tui', 'balo',
-            'tinh', 'lot', 'giay', 'tham', 'nap', 'khoa', 'bong', 'cuc', 'chi', 'vai',
-            'hu', 'hong', 'be', 'vo', 'nat', 'chai', 'cu', 'second', 'used', 'thao', 'doi'
-        }
-        units = {'gb', 'tb', 'mb', 'ram', 'ssd', 'hdd'}
+        # 2. Xác định "Stopwords" (từ phổ biến) và "Noise" (từ phụ kiện) một cách động
+        # Stopwords: Tần suất rất cao. Noise: IDF thấp so với các từ khóa chính.
+        term_metadata = {}
+        for t in query_terms:
+            if t in self.inverted_index:
+                df = len(self.inverted_index[t])
+                idf = self.calculate_idf(t)
+                term_metadata[t] = {'df': df, 'idf': idf}
+            else:
+                term_metadata[t] = {'df': 0, 'idf': 0}
+
+        # Stopwords động: Các từ xuất hiện trong hơn 5% tổng số tài liệu
+        dynamic_stopwords = {t for t, meta in term_metadata.items() if meta['df'] > self.total_docs * 0.05}
         
-        query_has_unit = any(t in units for t in query_terms)
-        # Nếu query có bất kỳ từ nào thuộc NOISE_WORDS -> User đang CHỦ ĐỘNG tìm phụ kiện
-        query_has_accessory = any(t in NOISE_WORDS for t in query_terms)
+        # Dynamic Accessory Detection:
+        # Instead of a list, we look for terms with lower-than-average IDF in the query
+        # excluding very high-frequency stopwords.
+        valid_idfs = [meta['idf'] for meta in term_metadata.values() if meta['idf'] > 0]
+        max_idf = max(valid_idfs) if valid_idfs else 0
+        mean_idf = sum(valid_idfs) / len(valid_idfs) if valid_idfs else 0
         
+        # Heuristic: Phát hiện các từ phụ (như phụ kiện) dựa trên IDF thấp so với đỉnh cao của query.
+        potential_noise = {t for t, meta in term_metadata.items() if meta['idf'] < max_idf * 0.4 and t not in dynamic_stopwords}
+        
+        # 3. Vòng lặp tính điểm BM25
         doc_scores = {}
         for term in query_terms:
             if term not in self.inverted_index:
                 continue
             
-            df = len(self.inverted_index[term])
-            idf = math.log((self.total_docs - df + 0.5) / (df + 0.5) + 1)
+            meta = term_metadata[term]
+            idf = meta['idf']
             
             for doc_id, tf in self.inverted_index[term].items():
                 doc_len = self.doc_lengths.get(doc_id, self.avg_doc_length)
@@ -159,7 +230,12 @@ class BM25Ranker:
                 denominator = tf + self.k1 * length_norm
                 
                 score = idf * (numerator / denominator)
-                # Phạt từ khóa quá phổ biến (nhưng không phạt nếu query ngắn)
+                
+                # Phạt các từ là số (ví dụ: '1000') để tránh chúng chiếm ưu thế quá mức
+                if term.isdigit():
+                    score *= 0.2
+                
+                # Phạt các từ quá phổ biến nếu truy vấn có nhiều hơn 1 từ
                 if len(query_terms) > 1 and df > self.total_docs * 0.05: score *= 0.3
                 
                 doc_scores[doc_id] = doc_scores.get(doc_id, 0.0) + score
@@ -173,14 +249,12 @@ class BM25Ranker:
         final_results = []
         
         # Stopwords KHÔNG DẤU (vì cả index lẫn query đã được chuẩn hóa)
-        stopwords = {'cai', 'chiec', 'con', 'bo', 'ra', 'voi', 'va', 'cho', 'moi', 'gia', 're', 'ban', 'thanh', 'ly', 'dich', 'vu'}
-        
-        # Query đã là list từ không dấu, tính coordination factor
-        important_q_terms = [t for t in query_terms if t not in stopwords and len(t) > 1]
+        # Các từ quan trọng để tính Coordination Factor (Tỷ lệ khớp)
+        important_q_terms = [t for t in query_terms if t not in dynamic_stopwords and len(t) > 1]
         if not important_q_terms: important_q_terms = query_terms[:]
         
         total_q_terms = len(important_q_terms)
-        query_phrase = " ".join(query_terms)  # Cụm query không dấu
+        query_phrase = " ".join(query_terms)
 
         for doc_id, base_score in raw_top:
             doc = self.get_doc_info(doc_id)
@@ -194,54 +268,96 @@ class BM25Ranker:
             for t in doc_tokens:
                 norm_tokens.extend(strip_accents(t).split())
             
-            # Tên sản phẩm gốc -> chuẩn hóa không dấu để so sánh
+            # Normalized product name for comparison
             name_norm = strip_accents(doc.get('product_name', ''))
+            name_tokens = name_norm.split()
             
             boost = 1.0
+
+            # --- Bảo vệ truy vấn đơn lẻ ---
+            # Nếu truy vấn chỉ có 1 từ quan trọng, phạt các tiêu đề quá chung chung hoặc quá dài
+            if len(query_terms) == 1 and query_terms[0] not in dynamic_stopwords:
+                q_term = query_terms[0]
+                q_pos = name_tokens.index(q_term) if q_term in name_tokens else -1
+                if q_pos > 3: boost *= 0.1
+                if len(name_tokens) > 12: boost *= 0.5
             
-            # Coordination Factor
-            unique_matches = sum(1 for q in important_q_terms if q in name_norm)
-            if total_q_terms > 0:
-                match_ratio = unique_matches / total_q_terms
+            # 1. IDF-weighted Coordination Factor (Tỷ lệ khớp theo trọng số IDF)
+            # Thưởng cho tài liệu chứa nhiều từ khóa, đặc biệt là các từ hiếm.
+            query_term_idfs = {t: self.calculate_idf(t) for t in query_terms if t not in dynamic_stopwords}
+            if not query_term_idfs: query_term_idfs = {t: self.calculate_idf(t) for t in query_terms}
+            
+            total_idf_sum = sum(query_term_idfs.values())
+            matched_terms = [t for t in query_term_idfs if t in name_norm]
+            matched_idf_sum = sum(query_term_idfs[t] for t in matched_terms)
+            
+            if total_idf_sum > 0:
+                match_ratio = matched_idf_sum / total_idf_sum
+                # Bình phương tỷ lệ để thưởng mạnh cho các tiêu đề khớp hoàn toàn
                 boost *= (match_ratio ** 2)
             
-            # Phrase Match Boost
-            if query_phrase in name_norm:
-                boost *= 2.5
+            # Thưởng thêm nếu khớp TẤT CẢ các từ quan trọng
+            if len(matched_terms) == len(query_term_idfs) and len(query_term_idfs) > 1:
+                boost *= 1.5
+
+            # 2. Kiểm tra từ khóa thiết yếu (Failsafe)
+            if query_term_idfs:
+                non_numeric_idfs = {t: idf for t, idf in query_term_idfs.items() if not t.isdigit()}
+                if not non_numeric_idfs: non_numeric_idfs = query_term_idfs
+                
+                max_idf = max(non_numeric_idfs.values())
+                essential_terms = [t for t, idf in non_numeric_idfs.items() if idf > max_idf * 0.8]
+                matched_essential = sum(1 for t in essential_terms if t in name_norm)
+                if len(essential_terms) > 0 and (matched_essential / len(essential_terms)) < 0.7:
+                    # Phạt nếu thiếu quá nhiều từ khóa thiết yếu
+                    boost *= 0.1
+
+            # 3. Thưởng cho từ khóa đứng gần nhau (Không phân biệt thứ tự)
+            # Tìm cửa sổ nhỏ nhất chứa càng nhiều từ khóa càng tốt
+            if len(query_terms) > 1:
+                positions = []
+                for q_term in query_terms:
+                    if q_term in dynamic_stopwords: continue
+                    # Find all positions of this query term in the name
+                    pos_list = [i for i, t in enumerate(name_tokens) if t == q_term]
+                    if pos_list:
+                        positions.append(pos_list)
+                
+                if len(positions) >= 2:
+                    # Tính toán độ gần: các từ cách nhau bao xa?
+                    # Kiểm tra các cặp liền kề (khoảng cách 1) hoặc gần kề (khoảng cách 2)
+                    min_dist = 999
+                    for i in range(len(positions)):
+                        for j in range(i + 1, len(positions)):
+                            for p1 in positions[i]:
+                                for p2 in positions[j]:
+                                    dist = abs(p1 - p2)
+                                    if dist < min_dist: min_dist = dist
+                    
+                    if min_dist == 1:
+                        boost *= 3.0 # Đứng sát nhau (như một cụm từ, bất kể thứ tự)
+                    elif min_dist == 2:
+                        boost *= 2.0 # Cách nhau 1 từ
+                    elif min_dist <= 4:
+                        boost *= 1.3 # Tương đối gần
             
-            # Position Boost
+            # 4. Thưởng cho vị trí xuất hiện (Nhẹ nhàng hơn)
             if query_terms and norm_tokens:
-                first_q = query_terms[0]
-                if first_q not in stopwords and norm_tokens and norm_tokens[0] == first_q:
-                    boost *= 1.5
+                # Nếu bất kỳ từ nào trong 2 từ đầu của query khớp với 2 token đầu của tên
+                first_two_q = set(query_terms[:2])
+                first_two_doc = set(norm_tokens[:2])
+                if first_two_q.intersection(first_two_doc):
+                    boost *= 1.2 # Reduced from 1.5 and made more flexible
             
-            # Noise Word Penalty
-            if not query_has_accessory:
-                # Quét xem có từ nào trong tên thuộc NOISE_WORDS không
-                all_name_tokens = name_norm.split()
-                # Phạt nặng hơn nếu từ nhiễu ở ngay đầu
-                first3 = set(all_name_tokens[:3])
-                anywhere = set(all_name_tokens)
-
-                noise_in_front  = sum(1 for t in first3 if t in NOISE_WORDS)
-                noise_elsewhere = sum(1 for t in anywhere if t in NOISE_WORDS) - noise_in_front
-
-                if noise_in_front >= 1:
-                    boost *= (0.05 ** noise_in_front) # Phạt cực nặng nếu "Xác..." đứng đầu
-                elif noise_elsewhere >= 1:
-                    boost *= (0.35 ** noise_elsewhere) # Phạt vừa nếu "điện thoại ... xác"
-
-            # Unit vs Model Distinction
-            # Ví dụ: Tìm "iphone 16" thì không nên ra "iphone 6 16gb"
-            if not query_has_unit:
-                for i, t in enumerate(norm_tokens):
-                    # Nếu từ trong doc khớp với một từ trong query (mà từ đó là số)
-                    if t in query_terms and t.isdigit():
-                        # Kiểm tra xem từ ngay sau nó trong doc có phải là đơn vị (gb, ram...) không
-                        if i + 1 < len(norm_tokens) and norm_tokens[i+1] in units:
-                            boost *= 0.1 # Phạt nặng vì đây là khớp dung lượng, không phải khớp model
-                            break
-
+            # 5. Hình phạt động cho "Nhiễu" và Chất lượng
+            # Phạt các tài liệu có tỷ lệ từ khóa chung chung quá cao hoặc các từ "nhiễu" (IDF thấp).
+            doc_noise_count = sum(1 for t in name_tokens if self.calculate_idf(t) < 1.0)
+            if doc_noise_count > 5:
+                boost *= 0.5
+            
+            # Nếu tiêu đề quá dài mà query quá ngắn, có khả năng là mô tả rác (spam)
+            if len(query_terms) <= 2 and len(name_tokens) > 15:
+                boost *= 0.5
 
             final_results.append((doc_id, base_score * boost, query))
         

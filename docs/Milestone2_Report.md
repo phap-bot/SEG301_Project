@@ -7,10 +7,9 @@
 ---
 
 ## 1. Problem Statement
-After Milestone 1, the system successfully integrated **1,028,125 product records** from seven e-commerce platforms (~700MB). Managing this scale on standard hardware presents two primary challenges:
+After Milestone 1, the system successfully integrated **1,028,125 product records** from seven e-commerce platforms (~700MB). Managing this scale on standard hardware presents a primary challenge:
 
-1.  **Memory Limits (Indexing):** A typical computer cannot load 1 million records into memory at once. We need a way to process data in smaller pieces.
-2.  **Search Relevance (Ranking):** Keyword matching alone often fails to filter out “noise” like scrap parts or mismatched capacities (e.g., finding “16GB” when searching for “iPhone 16”).
+**Memory Limits (Indexing):** A typical computer cannot load 1 million records into memory at once. We need a way to process data in smaller pieces.
 
 ---
 
@@ -94,36 +93,43 @@ def calculate_bm25_score(self, query_terms, doc_id, doc_tokens):
 
 ---
 
-## 4. Intelligent Reranking
+## 4. Dynamic Query Processing: N-gram Splitting
+A major highlight of our implementation is the **Dynamic N-gram Splitter**. This eliminates the need for hardcoded "stuck word" lists (e.g., `dienthoai`, `maygiat`).
+
+### The Algorithm:
+We use a **Weighted Shortest Path (Viterbi-style)** approach to find the most likely split points based on the inverted index.
+*   **Candidate Generation**: Generates all possible N-gram combinations.
+*   **Scoring**: Each segment is scored using `log(DF) * length^1.5`.
+*   **Result**: Automatically splits `redminote13` -> `['redmi', 'note', '13']` without manual rules.
+
+---
+
+## 5. Intelligent Reranking
 Custom rules refined for the Vietnamese marketplace.
 
 | Strategy | Goal | Multiplier |
 | :--- | :--- | :--- |
-| **Phrase Match** | Bonus for exact consecutive words | **×2.5** |
-| **Position Priority** | Bonus for keywords at title start | **×1.5** |
-| **Noise Filtering** | Penalize scrap/accessory listings | **×0.05** |
-| **Unit Check** | Penalize storage capacity mismatches | **×0.1** |
+| **Proximity Boost** | Bonus for keywords appearing close together | **×1.3 to ×3.0** |
+| **Position Boost** | Matches at the start of the product name | **×1.2** |
+| **Universal Noise Penalty** | Penalize generic/spammy titles via IDF | **×0.5** |
+| **Essential Term Check** | Penalize if key search terms are missing | **×0.1** |
 
 ---
 
-## 5. System Performance Results
+## 6. System Performance Results
 The system achieves high efficiency on standard hardware:
 
 | Metric | Result |
 | :--- | :--- |
 | **Total Documents** | 1,028,125 |
 | **Total Indexing Time** | 6m 39s |
-<<<<<<< HEAD
-| **Search Speed** | 1s |
-=======
 | **Search Speed** | < 1s |
->>>>>>> 15b6858 (feat: integrate on-the-fly tokenization and update performance metrics in report)
 | **Peak Memory Usage** | < 500MB |
 | **Total Index Size** | 175 MB |
 
 ---
 
-## 6. Conclusion
-Milestone 2 delivers a robust search engine built entirely from scratch. **SPIMI** enables efficient indexing of one million documents, while **BM25** combined with custom reranking ensures high accuracy for product searches.
+## 7. Conclusion
+Milestone 2 delivers a robust search engine built entirely from scratch. **SPIMI** enables efficient indexing of one million documents, while **Universal BM25** (no hardcoded word lists) combined with **Dynamic N-gram Splitting** ensures high accuracy and flexibility for any product category.
 
 **Prepared by Team phap-bot**
