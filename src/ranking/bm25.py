@@ -1,10 +1,11 @@
 """
 BM25 Ranking Algorithm Implementation
-Code tay hoàn toàn - KHÔNG dùng thư viện rank() có sẵn
+
 """
 
 import json
 import math
+import pickle
 from collections import Counter
 from typing import Dict, List, Tuple
 import sys
@@ -53,14 +54,23 @@ class BM25Ranker:
         print("📚 Loading index...")
         
         # Load inverted index
-        index_file = f"{self.index_dir}/inverted_index.json"
-        with open(index_file, 'r', encoding='utf-8') as f:
-            raw_index = json.load(f)
-        
-        # Chuyển đổi inner keys từ string sang int (doc_id)
-        self.inverted_index = {}
-        for term, doc_freqs in raw_index.items():
-            self.inverted_index[term] = {int(doc_id): tf for doc_id, tf in doc_freqs.items()}
+        index_file_pkl = f"{self.index_dir}/inverted_index.pkl"
+        if os.path.exists(index_file_pkl):
+            with open(index_file_pkl, 'rb') as f:
+                self.inverted_index = pickle.load(f)
+        else:
+            index_file_json = f"{self.index_dir}/inverted_index.json"
+            with open(index_file_json, 'r', encoding='utf-8') as f:
+                raw_index = json.load(f)
+            
+            # Chuyển đổi inner keys từ string sang int (doc_id)
+            self.inverted_index = {}
+            for term, doc_freqs in raw_index.items():
+                self.inverted_index[term] = {int(doc_id): tf for doc_id, tf in doc_freqs.items()}
+            
+            # Save as pickle for faster loading next time
+            with open(index_file_pkl, 'wb') as f:
+                pickle.dump(self.inverted_index, f)
             
         print(f"  [OK] Loaded inverted index: {len(self.inverted_index):,} terms")
         
