@@ -26,13 +26,12 @@ To solve memory issues, we implemented the **SPIMI (Single-Pass In-Memory Indexi
 ```mermaid
 flowchart LR
     Step1[<b>STEP 1</b><br/>Read 10k Docs Block] --> 
-    Step2[<b>STEP 2</b><br/>Tokenize & Clean] --> 
-    Step3[<b>STEP 3</b><br/>Build In-Memory Index] --> 
-    Step4[<b>STEP 4</b><br/>Flush Block to Disk] --> 
-    Step5{More Data?}
+    Step2[<b>STEP 2</b><br/>Build In-Memory Index] --> 
+    Step3[<b>STEP 3</b><br/>Flush Block to Disk] --> 
+    Step4{More Data?}
     
-    Step5 -- Yes --> Step1
-    Step5 -- No --> Step6[<b>STEP 6</b><br/>K-Way Merge all Blocks]
+    Step4 -- Yes --> Step1
+    Step4 -- No --> Step5[<b>STEP 5</b><br/>K-Way Merge all Blocks]
 ```
 
 ### Core Implementation (`spimi.py`)
@@ -81,15 +80,24 @@ The system uses the **BM25 (Best Match 25)** ranking function to ensure the most
 ### Retrieval Pipeline
 ```mermaid
 graph TD
-    In[Input: Search Query] --> Norm[1. Normalization & Tokenization]
-    Norm --> Lookup[2. Index Lookup:<br/>Retrieve Product IDs]
-    Lookup --> BM25[3. BM25 Scoring:<br/>Term Rarity & Frequency]
-    BM25 --> Rerank[4. Intelligent Reranking:<br/>Proximity & Position Boosts]
+    In[Input: Search Query] --> Lookup[1. Index Lookup:<br/>Retrieve Product IDs]
+    Lookup --> BM25[2. BM25 Scoring:<br/>Term Rarity & Frequency]
+    BM25 --> Rerank[3. Intelligent Reranking:<br/>Proximity & Position Boosts]
     Rerank --> Out[Output: Optimized Top K Results]
-    
-    style BM25 fill:#f9f,stroke:#333,stroke-width:2px
-    style Rerank fill:#bbf,stroke:#333,stroke-width:2px
 ```
+
+### BM25 Formulation
+The score of a document $D$ for a query $Q$ is calculated as:
+$$score(D, Q) = \sum_{q \in Q} IDF(q) \cdot \frac{f(q, D) \cdot (k_1 + 1)}{f(q, D) + k_1 \cdot (1 - b + b \cdot \frac{|D|}{avgdl})}$$
+
+where:
+*   $f(q, D)$: Term frequency of $q$ in document $D$.
+*   $|D|$: Length of document $D$ (word count).
+*   $avgdl$: Average document length in the collection.
+*   $k_1 = 2.0$ and $b = 0.8$.
+
+### IDF Calculation
+$$IDF(q) = \log\left(\frac{N - n(q) + 0.5}{n(q) + 0.5} + 1\right)$$
 
 ### Key Ranking Factors
 *   **Term Importance (IDF):** Rewards rare terms.
@@ -113,7 +121,7 @@ def calculate_bm25_score(self, query_terms, doc_id, doc_tokens):
         
         # BM25 Formula Implementation
         numerator = tf * (self.k1 + 1)
-        denominator = tf + self.k1 * (1 - self.b + self.b * doc_len / self.avg_doc_len)
+        denominator = tf + self.k1 * (1 - self.b + self.b * doc_len / self.avg_doc_length)
         score += idf * (numerator / denominator)
     return score
 ```
