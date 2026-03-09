@@ -132,22 +132,6 @@ def calculate_bm25_score(self, query_terms, doc_id, doc_tokens):
 Custom rules refined for the Vietnamese marketplace.
 
 ### Reranking Strategy Map
-```mermaid
-mindmap
-  root((Reranking Boosts))
-    Proximity
-      Keyword adjacency
-      Window size < 4
-    Structural
-      Match at start of name
-      Title length sanity check
-    Semantic
-      Essential term check
-      IDF-weighted coordination
-    Penalty
-      Generic noise filter
-      Numerical term weight
-```
 
 | Strategy | Goal | Multiplier |
 | :--- | :--- | :--- |
