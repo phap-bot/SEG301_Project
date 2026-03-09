@@ -7,19 +7,33 @@
 ---
 
 ## 1. Problem Statement
-After Milestone 1, the system successfully integrated **1,028,125 product records** from seven e-commerce platforms (~700MB). Managing this scale on standard hardware presents a primary challenge:
+After Milestone 1, the system successfully integrated **1,028,125 product records** from seven e-commerce platforms (~700MB). Managing this scale on standard hardware presents primary challenges:
 
-**Memory Limits (Indexing):** A typical computer cannot load 1 million records into memory at once. We need a way to process data in smaller pieces.
+### The Scaling Challenge
+```mermaid
+graph TD
+    A[1M+ Product Records] --> B{Memory Limit}
+    B -- "Cannot load all" --> C[SPIMI Algorithm]
+    B -- "Slow Search" --> D[BM25 + Byte Offsets]
+```
 
 ---
 
 ## 2. Indexing Architecture: SPIMI Algorithm
 To solve memory issues, we implemented the **SPIMI (Single-Pass In-Memory Indexing)** algorithm. This allows the system to build a massive index while staying within defined memory limits.
 
-### Workflow
-1.  **Block Processing:** Documents are processed in blocks of 10,000.
-2.  **Merging:** Block files are merged into one unified global index using a K-way merge (Heap-based).
-3.  **Data Persistence:** Optimized JSON files for storage.
+### Detailed Indexing Workflow
+```mermaid
+flowchart LR
+    Step1[<b>STEP 1</b><br/>Read 10k Docs Block] --> 
+    Step2[<b>STEP 2</b><br/>Tokenize & Clean] --> 
+    Step3[<b>STEP 3</b><br/>Build In-Memory Index] --> 
+    Step4[<b>STEP 4</b><br/>Flush Block to Disk] --> 
+    Step5{More Data?}
+    
+    Step5 -- Yes --> Step1
+    Step5 -- No --> Step6[<b>STEP 6</b><br/>K-Way Merge all Blocks]
+```
 
 ### Core Implementation (`spimi.py`)
 
@@ -61,8 +75,21 @@ We store the **Byte Offset** of every document to jump directly to any productâ€
 
 ---
 
-## 3. Ranking System: BM25 Algorithm
+## 3. Search & Ranking: BM25 Algorithm
 The system uses the **BM25 (Best Match 25)** ranking function to ensure the most relevant products appear first.
+
+### Retrieval Pipeline
+```mermaid
+graph TD
+    In[Input: Search Query] --> Norm[1. Normalization & Tokenization]
+    Norm --> Lookup[2. Index Lookup:<br/>Retrieve Product IDs]
+    Lookup --> BM25[3. BM25 Scoring:<br/>Term Rarity & Frequency]
+    BM25 --> Rerank[4. Intelligent Reranking:<br/>Proximity & Position Boosts]
+    Rerank --> Out[Output: Optimized Top K Results]
+    
+    style BM25 fill:#f9f,stroke:#333,stroke-width:2px
+    style Rerank fill:#bbf,stroke:#333,stroke-width:2px
+```
 
 ### Key Ranking Factors
 *   **Term Importance (IDF):** Rewards rare terms.
@@ -93,19 +120,26 @@ def calculate_bm25_score(self, query_terms, doc_id, doc_tokens):
 
 ---
 
-## 4. Dynamic Query Processing: N-gram Splitting
-A major highlight of our implementation is the **Dynamic N-gram Splitter**. This eliminates the need for hardcoded "stuck word" lists (e.g., `dienthoai`, `maygiat`).
-
-### The Algorithm:
-We use a **Weighted Shortest Path (Viterbi-style)** approach to find the most likely split points based on the inverted index.
-*   **Candidate Generation**: Generates all possible N-gram combinations.
-*   **Scoring**: Each segment is scored using `log(DF) * length^1.5`.
-*   **Result**: Automatically splits `redminote13` -> `['redmi', 'note', '13']` without manual rules.
-
----
-
-## 5. Intelligent Reranking
+## 4. Intelligent Reranking
 Custom rules refined for the Vietnamese marketplace.
+
+### Reranking Strategy Map
+```mermaid
+mindmap
+  root((Reranking Boosts))
+    Proximity
+      Keyword adjacency
+      Window size < 4
+    Structural
+      Match at start of name
+      Title length sanity check
+    Semantic
+      Essential term check
+      IDF-weighted coordination
+    Penalty
+      Generic noise filter
+      Numerical term weight
+```
 
 | Strategy | Goal | Multiplier |
 | :--- | :--- | :--- |
@@ -116,7 +150,7 @@ Custom rules refined for the Vietnamese marketplace.
 
 ---
 
-## 6. System Performance Results
+## 5. System Performance Results
 The system achieves high efficiency on standard hardware:
 
 | Metric | Result |
@@ -129,7 +163,7 @@ The system achieves high efficiency on standard hardware:
 
 ---
 
-## 7. Conclusion
-Milestone 2 delivers a robust search engine built entirely from scratch. **SPIMI** enables efficient indexing of one million documents, while **Universal BM25** (no hardcoded word lists) combined with **Dynamic N-gram Splitting** ensures high accuracy and flexibility for any product category.
+## 6. Conclusion
+Milestone 2 delivers a robust search engine built entirely from scratch. **SPIMI** enables efficient indexing of one million documents, while **Universal BM25** combined with **Intelligent Reranking** ensures high accuracy and flexibility for any product category without relying on hardcoded rules.
 
 **Prepared by Team phap-bot**
