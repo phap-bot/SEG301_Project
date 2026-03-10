@@ -1,0 +1,42 @@
+﻿uvicorn : INFO:     
+Started server process 
+[7488]
+At line:1 char:26
++ ... 
+env\Scripts\activate; 
+uvicorn main:app 
+--port 8001 > 
+uvicorn.log 2>&1
++                      
+     ~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (INFO:     Sta   
+ rted server proces    
+s [7488]:String) [    
+], RemoteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+INFO:     Waiting for 
+application startup.
+INFO:main:Starting up 
+application lifespan...
+INFO:main:Supabase 
+client initialized 
+successfully.
+INFO:main:Loading BM25 
+Index from D:\Antigravi
+ty\SEG301\SEG301_Projec
+t\index into RAM...
+INFO:main:BM25 Index 
+loaded successfully.
+INFO:     Application 
+startup complete.
+INFO:     Uvicorn 
+running on 
+http://127.0.0.1:8001 
+(Press CTRL+C to quit)
