@@ -113,18 +113,20 @@ $$IDF(q) = \log\left(\frac{N - n(q) + 0.5}{n(q) + 0.5} + 1\right)$$
 
 ### BM25 Calculation & Reranking (`bm25.py`)
 ```python
-# 1. Base BM25 Score
-numerator = tf * (self.k1 + 1)
-denominator = tf + self.k1 * (1 - self.b + self.b * doc_len / self.avg_doc_length)
-score = idf * (numerator / denominator)
-
-# 2. Keyword Stuffing Penalty (Anti-Spam)
-if term_count > 2:
-    boost *= (0.7 ** (term_count - 2))
-
-# 3. Platform Bias Adjustment
-if platform == 'chợ tốt' and len(name_tokens) < 5:
-    boost *= 0.9
+def calculate_bm25_score(self, query_terms, doc_id, doc_tokens):
+    score = 0
+    doc_len = len(doc_tokens)
+    for term in query_terms:
+        if term not in self.inverted_index: continue
+        idf = self.calculate_idf(term)
+        tf = self.inverted_index[term].get(str(doc_id), 0)
+        
+        # BM25 Formula Implementation
+        numerator = tf * (self.k1 + 1)
+        length_norm = 1 - self.b + self.b * (doc_len / self.avg_doc_length)
+        denominator = tf + self.k1 * length_norm
+        score += idf * (numerator / denominator)
+    return score
 ```
 
 ---
@@ -136,13 +138,14 @@ Custom rules refined for the Vietnamese marketplace.
 
 | Strategy | Goal | Multiplier |
 | :--- | :--- | :--- |
-| **Proximity Boost** | Bonus for keywords appearing close together | **×1.3 to ×3.0** |
-| **Position Boost** | Matches at the start of the product name | **×1.2** |
-| **Keyword Stuffing** | Penalize repetitive keywords (anti-spam) | **×0.7^n** |
-| **Universal Noise Penalty** | Penalize generic/spammy titles (IDF < 1.0) | **×0.4** |
-| **Platform Normalization** | Balance short titles from Chợ Tốt | **×0.9** |
+| **Proximity Boost** | Bonus keywords appearing close together | **×1.3 to ×3.0** |
+| **Position Boost** | Matches at the start of product name | **×1.2** |
+| **Keyword Stuffing** | Penalize repetitive keywords (anti-spam) | **×0.8^n** |
+| **Universal Noise Penalty** | Penalize generic/spammy titles (IDF < 1.0) | **×0.6** |
+| **Platform Normalization** | Balance short titles from Chợ Tốt | **×0.95** |
 | **Essential Term Check** | Penalize if key search terms are missing | **×0.1** |
-| **Spam Description** | Penalize very long names with short queries | **×0.5** |
+| **Category Conflict** | Demote irrelevant categories (Watch, Earpiece) | **×0.05** |
+| **Spam Description** | Penalize very long names with short queries | **×0.7** |
 
 ---
 
