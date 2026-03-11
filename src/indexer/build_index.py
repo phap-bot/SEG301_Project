@@ -45,8 +45,8 @@ def main():
     parser.add_argument(
         '--block-size',
         type=int,
-        default=10000,
-        help='Documents per block (default: 10000)'
+        default=1000,
+        help='Documents per block (default: 1000)'
     )
     parser.add_argument(
         '--yes', '-y',
