@@ -192,14 +192,8 @@ class BM25Ranker:
                 splits = self._split_stuck_word_dynamic(norm_t)
                 if len(splits) > 1:
                     query_terms.extend(splits)
-                    print(f"  [Auto-Split] '{norm_t}' -> {splits}")
                     continue
             query_terms.append(norm_t)
-            
-            # Nếu từ có dấu gạch dưới (từ underthesea), thêm cả các phần lẻ vào
-            # vì index hiện tại đang lưu ở dạng tách từ đơn lẻ.
-            if '_' in norm_t:
-                query_terms.extend(norm_t.split('_'))
         
         query_terms = [t for t in dict.fromkeys(query_terms) if len(t) > 1 or t.isdigit()]
         
@@ -225,28 +219,60 @@ class BM25Ranker:
         
         doc_scores = {}
         for term in query_terms:
-            if term not in self.inverted_index:
-                continue
+            if '_' in term:
+                parts = term.split('_')
+                common_docs = None
+                for p in parts:
+                    if p not in self.inverted_index:
+                        common_docs = set()
+                        break
+                    p_docs = set(self.inverted_index[p].keys())
+                    if common_docs is None:
+                        common_docs = p_docs
+                    else:
+                        common_docs &= p_docs
+                
+                if not common_docs:
+                    continue
+                
+                for doc_id in common_docs:
+                    comp_score = 0.0
+                    for p in parts:
+                        tf = self.inverted_index[p][doc_id]
+                        doc_len = self.doc_lengths.get(doc_id, self.avg_doc_length)
+                        idf = self.calculate_idf(p)
+                        
+                        numerator = tf * (self.k1 + 1)
+                        length_norm = 1 - self.b + self.b * (doc_len / self.avg_doc_length)
+                        denominator = tf + self.k1 * length_norm
+                        comp_score += idf * (numerator / denominator)
+                    
+                    doc_scores[doc_id] = doc_scores.get(doc_id, 0.0) + comp_score
             
-            meta = term_metadata[term]
-            idf = meta['idf']
-            
-            for doc_id, tf in self.inverted_index[term].items():
-                doc_len = self.doc_lengths.get(doc_id, self.avg_doc_length)
-                numerator = tf * (self.k1 + 1)
-                length_norm = 1 - self.b + self.b * (doc_len / self.avg_doc_length)
-                denominator = tf + self.k1 * length_norm
+            else:
+                if term not in self.inverted_index:
+                    continue
                 
-                score = idf * (numerator / denominator)
+                meta = term_metadata[term]
+                idf = meta['idf']
+                df = meta['df']
                 
-                # Phạt các từ là số (ví dụ: '1000') để tránh chúng chiếm ưu thế quá mức
-                if term.isdigit():
-                    score *= 0.2
-                
-                # Phạt các từ quá phổ biến nếu truy vấn có nhiều hơn 1 từ
-                if len(query_terms) > 1 and df > self.total_docs * 0.05: score *= 0.3
-                
-                doc_scores[doc_id] = doc_scores.get(doc_id, 0.0) + score
+                for doc_id, tf in self.inverted_index[term].items():
+                    doc_len = self.doc_lengths.get(doc_id, self.avg_doc_length)
+                    numerator = tf * (self.k1 + 1)
+                    length_norm = 1 - self.b + self.b * (doc_len / self.avg_doc_length)
+                    denominator = tf + self.k1 * length_norm
+                    
+                    score = idf * (numerator / denominator)
+                    
+                    # Phạt các từ là số
+                    if term.isdigit():
+                        score *= 0.2
+                    
+                    # Phạt các từ quá phổ biến
+                    if len(query_terms) > 1 and df > self.total_docs * 0.05: score *= 0.3
+                    
+                    doc_scores[doc_id] = doc_scores.get(doc_id, 0.0) + score
         
         if not doc_scores:
             return []
