@@ -194,10 +194,10 @@ class BM25Ranker:
                     query_terms.extend(splits)
                     print(f"  [Auto-Split] '{norm_t}' -> {splits}")
                     continue
-            
             query_terms.append(norm_t)
             
             # Nếu từ có dấu gạch dưới (từ underthesea), thêm cả các phần lẻ vào
+            # vì index hiện tại đang lưu ở dạng tách từ đơn lẻ.
             if '_' in norm_t:
                 query_terms.extend(norm_t.split('_'))
         
@@ -290,8 +290,14 @@ class BM25Ranker:
             query_term_idfs = {t: self.calculate_idf(t) for t in query_terms if t not in dynamic_stopwords}
             if not query_term_idfs: query_term_idfs = {t: self.calculate_idf(t) for t in query_terms}
             
+            # 1. IDF-weighted Coordination Factor (Tỷ lệ khớp theo trọng số IDF)
+            # Thưởng cho tài liệu chứa nhiều từ khóa, đặc biệt là các từ hiếm.
+            query_term_idfs = {t: self.calculate_idf(t) for t in query_terms if t not in dynamic_stopwords}
+            if not query_term_idfs: query_term_idfs = {t: self.calculate_idf(t) for t in query_terms}
+            
             total_idf_sum = sum(query_term_idfs.values())
-            matched_terms = [t for t in query_term_idfs if t in name_norm]
+            # FIX: Handle underscores when matching against name_norm
+            matched_terms = [t for t in query_term_idfs if t.replace('_', ' ') in name_norm]
             matched_idf_sum = sum(query_term_idfs[t] for t in matched_terms)
             
             if total_idf_sum > 0:
@@ -309,7 +315,8 @@ class BM25Ranker:
                 
                 max_idf = max(non_numeric_idfs.values())
                 essential_terms = [t for t, idf in non_numeric_idfs.items() if idf > max_idf * 0.8]
-                matched_essential = sum(1 for t in essential_terms if t in name_norm)
+                # FIX: Handle underscores for essential terms
+                matched_essential = sum(1 for t in essential_terms if t.replace('_', ' ') in name_norm)
                 if len(essential_terms) > 0 and (matched_essential / len(essential_terms)) < 0.7:
                     # Phạt nếu thiếu quá nhiều từ khóa thiết yếu
                     boost *= 0.1
@@ -320,10 +327,12 @@ class BM25Ranker:
                 positions = []
                 for q_term in query_terms:
                     if q_term in dynamic_stopwords: continue
-                    # Find all positions of this query term in the name
-                    pos_list = [i for i, t in enumerate(name_tokens) if t == q_term]
-                    if pos_list:
-                        positions.append(pos_list)
+                    # FIX: If compound word, search for individual parts in name_tokens
+                    parts = q_term.split('_')
+                    for part in parts:
+                        pos_list = [i for i, t in enumerate(name_tokens) if t == part]
+                        if pos_list:
+                            positions.append(pos_list)
                 
                 if len(positions) >= 2:
                     # Tính toán độ gần: các từ cách nhau bao xa?
@@ -337,27 +346,76 @@ class BM25Ranker:
                                     if dist < min_dist: min_dist = dist
                     
                     if min_dist == 1:
-                        boost *= 3.0 # Đứng sát nhau (như một cụm từ, bất kể thứ tự)
+                        boost *= 3.0 # Đứng sát nhau
                     elif min_dist == 2:
                         boost *= 2.0 # Cách nhau 1 từ
                     elif min_dist <= 4:
                         boost *= 1.3 # Tương đối gần
             
+            # 4. Keyword Stuffing Penalty
+            for q_term in query_terms:
+                if q_term in dynamic_stopwords or q_term.isdigit(): continue
+                # FIX: Check parts for compound words
+                parts = q_term.split('_')
+                max_count = 0
+                for part in parts:
+                    count = name_tokens.count(part)
+                    if count > max_count: max_count = count
+                
+                if max_count > 3: # Tăng ngưỡng từ 2 lên 3
+                    penalty = 0.8 ** (max_count - 3) # Mềm mỏng hơn (0.8 thay vì 0.7)
+                    boost *= penalty
+                    # print(f"  [Spam Penalty] '{q_term}' count={term_count}, penalty={penalty:.2f}")
+
+            # 5. Platform Bias Adjustment
+            platform = doc.get('platform', '').lower()
+            if platform == 'chợ tốt':
+                if len(name_tokens) < 5:
+                    boost *= 0.95
+            
+            # 6. Category Conflict Check (NEW)
+            # Nếu người dùng tìm "điện thoại", tuyệt đối phạt các sản phẩm là đồng hồ, tai nghe, ốp lưng...
+            query_is_phone = any(t in ['dien_thoai', 'phone', 'smartphone', 'di_dong'] for t in query_terms)
+            if query_is_phone:
+                is_conflicting = False
+                # Danh sách các từ khóa của các ngành hàng dễ gây nhầm lẫn
+                watch_keywords = ['dong_ho', 'watch', 'smartwatch', 'mi_band', 'apple_watch', 'galaxy_watch']
+                audio_keywords = ['tai_nghe', 'headphone', 'earbuds', 'tws', 'airpods', 'buds', 'loa']
+                acc_keywords = ['op_lung', 'case', 'bao_da', 'cuong_luc', 'sac', 'cap', 'cable', 'adapter', 'day_deo', 'dock', 'pin_du_phong', 'power_bank']
+                tablet_keywords = ['ipad', 'tablet', 'may_tinh_bang']
+                
+                # Check if product name normalized contains any of these
+                name_norm_no_underscore = name_norm.replace('_', ' ')
+                for kw in watch_keywords + audio_keywords + acc_keywords + tablet_keywords:
+                    kw_clean = kw.replace('_', ' ')
+                    if kw_clean in name_norm_no_underscore:
+                        # Tuy nhiên, nếu tiêu đề vẫn có chữ "điện thoại" thì có thể là phụ kiện CHO điện thoại, 
+                        # hoặc là điện thoại thật, nên ta phạt nhẹ hơn. Nếu KHÔNG có chữ điện thoại thì phạt nặng.
+                        if 'dien thoai' not in name_norm_no_underscore:
+                            boost *= 0.05 # Phạt cực nặng (95% score)
+                        else:
+                            boost *= 0.3  # Phạt vừa (70% score)
+                        is_conflicting = True
+                        break
+
             if query_terms and norm_tokens:
                 # Vị trí xuất hiện
-                first_two_q = set(query_terms[:2])
+                first_two_q = []
+                for q in query_terms[:2]: first_two_q.extend(q.split('_'))
+                first_two_q = set(first_two_q)
+                
                 first_two_doc = set(norm_tokens[:2])
                 if first_two_q.intersection(first_two_doc):
                     boost *= 1.2
             
             # Hình phạt động cho "Nhiễu" và Chất lượng
             doc_noise_count = sum(1 for t in name_tokens if self.calculate_idf(t) < 1.0)
-            if doc_noise_count > 5:
-                boost *= 0.5
+            if doc_noise_count > 6: # Tăng ngưỡng từ 4 lên 6
+                boost *= 0.6 
             
             # Nếu tiêu đề quá dài mà query quá ngắn, có khả năng là mô tả rác (spam)
-            if len(query_terms) <= 2 and len(name_tokens) > 15:
-                boost *= 0.5
+            if len(query_terms) <= 2 and len(name_tokens) > 20: # Tăng ngưỡng từ 12 lên 20
+                boost *= 0.7
 
             final_results.append((doc_id, base_score * boost, query))
         

@@ -103,27 +103,28 @@ $$IDF(q) = \log\left(\frac{N - n(q) + 0.5}{n(q) + 0.5} + 1\right)$$
 *   **Term Importance (IDF):** Rewards rare terms.
 *   **Keyword Saturation:** Prevents score inflation from keyword repeating.
 *   **Length Normalization:** Adjusts scores for title length differences.
+*   **Keyword Stuffing Penalty:** Exponentially penalizes repetitive terms.
 
 | Parameter | Value | Role |
 | :--- | :--- | :--- |
 | **k1** | 2.0 | Limits influence of repeated keywords |
 | **b** | 0.8 | Penalizes unnecessarily long titles |
+| **Noise Threshold** | 4 | Penalizes titles with too many low-IDF words |
 
-### BM25 Calculation (`bm25.py`)
+### BM25 Calculation & Reranking (`bm25.py`)
 ```python
-def calculate_bm25_score(self, query_terms, doc_id, doc_tokens):
-    score = 0
-    doc_len = len(doc_tokens)
-    for term in query_terms:
-        if term not in self.inverted_index: continue
-        idf = self.calculate_idf(term)
-        tf = self.inverted_index[term].get(str(doc_id), 0)
-        
-        # BM25 Formula Implementation
-        numerator = tf * (self.k1 + 1)
-        denominator = tf + self.k1 * (1 - self.b + self.b * doc_len / self.avg_doc_length)
-        score += idf * (numerator / denominator)
-    return score
+# 1. Base BM25 Score
+numerator = tf * (self.k1 + 1)
+denominator = tf + self.k1 * (1 - self.b + self.b * doc_len / self.avg_doc_length)
+score = idf * (numerator / denominator)
+
+# 2. Keyword Stuffing Penalty (Anti-Spam)
+if term_count > 2:
+    boost *= (0.7 ** (term_count - 2))
+
+# 3. Platform Bias Adjustment
+if platform == 'chợ tốt' and len(name_tokens) < 5:
+    boost *= 0.9
 ```
 
 ---
@@ -137,8 +138,11 @@ Custom rules refined for the Vietnamese marketplace.
 | :--- | :--- | :--- |
 | **Proximity Boost** | Bonus for keywords appearing close together | **×1.3 to ×3.0** |
 | **Position Boost** | Matches at the start of the product name | **×1.2** |
-| **Universal Noise Penalty** | Penalize generic/spammy titles via IDF | **×0.5** |
+| **Keyword Stuffing** | Penalize repetitive keywords (anti-spam) | **×0.7^n** |
+| **Universal Noise Penalty** | Penalize generic/spammy titles (IDF < 1.0) | **×0.4** |
+| **Platform Normalization** | Balance short titles from Chợ Tốt | **×0.9** |
 | **Essential Term Check** | Penalize if key search terms are missing | **×0.1** |
+| **Spam Description** | Penalize very long names with short queries | **×0.5** |
 
 ---
 

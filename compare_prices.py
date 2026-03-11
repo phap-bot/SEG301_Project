@@ -31,7 +31,7 @@ def show_results(results, ranker):
         url      = doc.get('product_url', '#')
 
         print(SEP)
-        print(f"[{i}] {name}")
+        print(f"[{i}] [Score: {score:.2f}] {name}")
         print(f"    Platform: {platform}  |  Price: {price}  |  ⭐ {rating} ({reviews:,} reviews)")
         print(f"    🔗 {url}")
     print(SEP)
