@@ -58,14 +58,10 @@ export function ProductDetails() {
     useEffect(() => {
         const fetchDetails = async () => {
             try {
-                const { supabase } = await import("@/lib/supabase")
-                const { data, error } = await supabase
-                    .from("products")
-                    .select("*")
-                    .eq("id", Number(id))
-                    .single()
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/products/${id}`)
+                if (!response.ok) throw new Error("Product fetch failed")
+                const data = await response.json()
 
-                if (error) throw error
                 setProduct(data)
                 setPriceHistory(generateMockPriceHistory(data.price))
             } catch (error) {

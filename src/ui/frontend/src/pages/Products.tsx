@@ -19,7 +19,7 @@ interface Product {
     image_url?: string
 }
 
-const PLATFORMS = ["Điện Máy Xanh", "CellphoneS", "Lazada", "Tiki", "Chợ Tốt", "FPT Shop"]
+const PLATFORMS = ["Điện Máy Xanh", "CellphoneS", "Lazada", "Tiki", "Chợ Tốt", "FPT Shop", "eBay"]
 
 export function Products() {
     const [searchParams, setSearchParams] = useSearchParams()
@@ -33,16 +33,20 @@ export function Products() {
     const [results, setResults] = useState<Product[]>([])
     const [loading, setLoading] = useState(false)
     const [total, setTotal] = useState(0)
+    const [page, setPage] = useState(1)
+    const limit = 20
 
     // Filters
     const [minPrice, setMinPrice] = useState("")
     const [maxPrice, setMaxPrice] = useState("")
     const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
+    const [searchType, setSearchType] = useState("hybrid")
 
-    const fetchProducts = async (currentQuery = query) => {
+    const fetchProducts = async (currentQuery = query, nextPage = page) => {
         if (!currentQuery.trim()) {
             setResults([])
             setTotal(0)
+            setPage(1)
             return
         }
 
@@ -50,10 +54,12 @@ export function Products() {
         try {
             const url = new URL(`${import.meta.env.VITE_API_URL}/api/v1/search`)
             url.searchParams.append("query", currentQuery)
-            url.searchParams.append("limit", "20")
+            url.searchParams.append("limit", String(limit))
+            url.searchParams.append("page", String(nextPage))
             if (minPrice) url.searchParams.append("min_price", minPrice)
             if (maxPrice) url.searchParams.append("max_price", maxPrice)
             selectedPlatforms.forEach(p => url.searchParams.append("platforms", p))
+            url.searchParams.append("search_type", searchType)
 
             const res = await fetch(url.toString())
             if (!res.ok) throw new Error("Failed to fetch products")
@@ -61,6 +67,7 @@ export function Products() {
 
             setResults(data.results || [])
             setTotal(data.total_results || 0)
+            setPage(data.page || nextPage)
         } catch (error) {
             console.error(error)
         } finally {
@@ -71,7 +78,7 @@ export function Products() {
     // Trigger search on mount if query exists in URL
     useEffect(() => {
         if (initialQuery) {
-            fetchProducts(initialQuery)
+            fetchProducts(initialQuery, 1)
         }
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -116,7 +123,7 @@ export function Products() {
         if (e) e.preventDefault()
         setShowSuggestions(false)
         setSearchParams(query ? { query } : {})
-        fetchProducts()
+        fetchProducts(query, 1)
     }
 
     const togglePlatform = (platform: string) => {
@@ -160,6 +167,19 @@ export function Products() {
                                     )
                                 })}
                             </div>
+                        </div>
+
+                        <div>
+                            <h4 className="font-medium mb-3 text-base text-muted-foreground">Search Mode</h4>
+                            <select 
+                                value={searchType} 
+                                onChange={(e) => setSearchType(e.target.value)}
+                                className="w-full p-3 border border-zinc-200 rounded-xl bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            >
+                                <option value="bm25">Keyword (BM25)</option>
+                                <option value="vector">Semantic (AI Vector)</option>
+                                <option value="hybrid">Hybrid (AI + Keyword)</option>
+                            </select>
                         </div>
 
                         <div>
@@ -256,7 +276,11 @@ export function Products() {
                 </form>
 
                 <div className="flex items-center justify-between text-muted-foreground">
-                    <p>{total > 0 ? `Found ${total} matching results` : "Start searching to see best deals"}</p>
+                    <p>
+                        {total > 0
+                            ? `Found ${total} matching results — showing ${results.length} on page ${page}`
+                            : "Start searching to see best deals"}
+                    </p>
                 </div>
 
                 {loading ? (
@@ -320,6 +344,30 @@ export function Products() {
                                 <p className="text-sm text-muted-foreground">Try adjusting your filters or spelling.</p>
                             </div>
                         )}
+                    </div>
+                )}
+
+                {total > 0 && (
+                    <div className="flex items-center justify-center gap-3 pt-4">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={loading || page <= 1}
+                            onClick={() => fetchProducts(query, page - 1)}
+                        >
+                            Prev
+                        </Button>
+                        <span className="text-sm text-muted-foreground">
+                            Page {page} / {Math.max(1, Math.ceil(total / limit))}
+                        </span>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={loading || page >= Math.ceil(total / limit)}
+                            onClick={() => fetchProducts(query, page + 1)}
+                        >
+                            Next
+                        </Button>
                     </div>
                 )}
             </div>

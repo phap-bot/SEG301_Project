@@ -1,4 +1,4 @@
-import { MonitorPlay, Smartphone, ShoppingCart, ShoppingBag, Store, Package } from "lucide-react"
+import { MonitorPlay, Smartphone, ShoppingCart, ShoppingBag, Store, Package, Globe } from "lucide-react"
 import React from "react"
 
 export interface PlatformStyle {
@@ -58,6 +58,14 @@ export const PLATFORM_MAP: Record<string, PlatformStyle> = {
         border: "border-[#cd1818]/20",
         icon: Package,
         shortAppLogo: "FPT"
+    },
+    "eBay": {
+        name: "eBay",
+        color: "text-[#0064D2]",
+        bg: "bg-[#0064D2]/10",
+        border: "border-[#0064D2]/20",
+        icon: Globe,
+        shortAppLogo: "EBAY"
     }
 }
 
