@@ -19,6 +19,7 @@ from ..services.search_utils import (
     compute_effective_price,
     dummy_tokenize,
     name_tokens,
+    normalize_platform_filter,
 )
 
 logger = logging.getLogger(__name__)
@@ -32,8 +33,11 @@ async def compare_endpoint(
     search_type: str = Query("hybrid", description="bm25|vector|hybrid"),
     max_candidates: int = Query(100, ge=20, le=200, description="How many candidates to fetch before grouping"),
     max_groups: int = Query(5, ge=1, le=20, description="How many grouped recommendations to return"),
+    min_price: int | None = Query(None, description="Minimum price filter"),
+    max_price: int | None = Query(None, description="Maximum price filter"),
+    platforms: List[str] = Query(default=[], description="List of platforms to filter by"),
 ):
-    if not deps.supabase_client:
+    if deps.mongo_client is None or deps.products_col is None:
         raise HTTPException(status_code=500, detail="Database connection is not initialized.")
     if not deps.search_engine:
         raise HTTPException(status_code=500, detail="BM25 Search engine is not initialized.")
@@ -74,15 +78,18 @@ async def compare_endpoint(
         except (ValueError, TypeError):
             int_ids.append(did)
 
-    db_response = (
-        deps.supabase_client.table("products").select("*").in_("id", int_ids).execute()
-    )
-    products_data = db_response.data or []
+    mongo_filter: dict[str, Any] = {"id": {"$in": int_ids}}
+    if min_price is not None or max_price is not None:
+        mongo_filter["price"] = {}
+        if min_price is not None:
+            mongo_filter["price"]["$gte"] = min_price
+        if max_price is not None:
+            mongo_filter["price"]["$lte"] = max_price
+    if platforms:
+        mongo_filter["platform"] = {"$in": normalize_platform_filter(platforms)}
 
-    product_rows: List[dict[str, Any]] = []
-    for item in cast(List[Any], products_data):
-        if isinstance(item, dict):
-            product_rows.append(cast(dict[str, Any], item))
+    cursor = deps.products_col.find(mongo_filter, projection={"_id": 0})
+    product_rows: List[dict[str, Any]] = [cast(dict[str, Any], item) for item in cursor]
 
     if not product_rows:
         return CompareResponse(query=query, groups=[])
@@ -91,11 +98,9 @@ async def compare_endpoint(
 
     vouchers: List[dict[str, Any]] = []
     try:
-        v_res = deps.supabase_client.table("vouchers").select("*").execute()
-        v_data = v_res.data or []
-        for item in cast(List[Any], v_data):
-            if isinstance(item, dict):
-                vouchers.append(cast(dict[str, Any], item))
+        if deps.vouchers_col is not None:
+            cursor_v = deps.vouchers_col.find({}, projection={"_id": 0})
+            vouchers = [cast(dict[str, Any], item) for item in cursor_v]
     except Exception:
         vouchers = []
 

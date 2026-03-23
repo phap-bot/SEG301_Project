@@ -13,6 +13,6 @@ async def health_check():
         "status": "healthy",
         "search_engine_loaded": deps.search_engine is not None,
         "vector_engine_loaded": deps.vector_engine is not None,
-        "database_connected": deps.supabase_client is not None,
+        "database_connected": deps.mongo_client is not None,
     }
 

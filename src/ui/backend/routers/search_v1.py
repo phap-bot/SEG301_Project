@@ -15,15 +15,17 @@ router = APIRouter(prefix="/api/v1", tags=["search"])
 
 
 async def _log_search_query(
-    client,
+    search_logs_col,
     query_text: str,
     bm25_res: list,
     vector_res: list,
     hybrid_res: list,
+    user_id: str | None = None,
 ) -> None:
-    if not client:
+    if search_logs_col is None:
         return
     try:
+        import time
         bm25_top10 = [str(item[0]) for item in bm25_res[:10]] if bm25_res else []
         vector_top10 = [str(item[0]) for item in vector_res[:10]] if vector_res else []
         hybrid_top10 = [str(item[0]) for item in hybrid_res[:10]] if hybrid_res else []
@@ -32,10 +34,12 @@ async def _log_search_query(
             "bm25_top10": bm25_top10,
             "vector_top10": vector_top10,
             "hybrid_top10": hybrid_top10,
+            "user_id": user_id,
+            "created_at": time.time(),
         }
-        client.table("search_logs").insert(payload).execute()
+        search_logs_col.insert_one(payload)
     except Exception as e:
-        logger.error(f"Error logging search query to Supabase: {repr(e)}")
+        logger.error(f"Error logging search query to MongoDB: {repr(e)}")
 
 
 @router.get("/search", response_model=SearchResponse)
@@ -48,11 +52,13 @@ async def search_endpoint(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
     search_type: str = Query("hybrid", description="Type of search: 'bm25', 'vector', or 'hybrid'"),
+    user_id: Optional[str] = Query(None, description="User ID to build profile search log"),
 ):
-    if not deps.supabase_client:
+    if deps.mongo_client is None or deps.products_col is None:
         raise HTTPException(status_code=500, detail="Database connection is not initialized.")
 
     try:
+        from ..services.search_utils import dummy_tokenize, normalize_platform_filter
         tokenized_query = dummy_tokenize(query)
         top_k = 200
 
@@ -89,11 +95,12 @@ async def search_endpoint(
 
         background_tasks.add_task(
             _log_search_query,
-            client=deps.supabase_client,
+            search_logs_col=deps.search_logs_col,
             query_text=query,
             bm25_res=bm25_res_for_log,
             vector_res=vec_res_for_log,
             hybrid_res=hybrid_res_for_log,
+            user_id=user_id,
         )
 
         if not final_results:
@@ -109,25 +116,21 @@ async def search_endpoint(
                 return val
 
         top_doc_ids_for_db = [to_int(doc_id) for doc_id in top_doc_ids]
-        req = deps.supabase_client.table("products").select("*").in_("id", top_doc_ids_for_db)
+        mongo_filter: dict[str, Any] = {"id": {"$in": top_doc_ids_for_db}}
 
-        if min_price is not None:
-            req = req.gte("price", min_price)
-        if max_price is not None:
-            req = req.lte("price", max_price)
+        if min_price is not None or max_price is not None:
+            mongo_filter["price"] = {}
+            if min_price is not None:
+                mongo_filter["price"]["$gte"] = min_price
+            if max_price is not None:
+                mongo_filter["price"]["$lte"] = max_price
+
         if platforms:
             normalized_platforms = normalize_platform_filter(platforms)
-            req = req.in_("platform", normalized_platforms)
+            mongo_filter["platform"] = {"$in": normalized_platforms}
 
-        db_response = req.execute()
-        products_data = db_response.data
-        if not products_data:
-            return SearchResponse(total_results=0, page=page, limit=limit, results=[])
-
-        product_rows: List[dict[str, Any]] = []
-        for item in cast(List[Any], products_data):
-            if isinstance(item, dict):
-                product_rows.append(cast(dict[str, Any], item))
+        cursor = deps.products_col.find(mongo_filter, projection={"_id": 0})
+        product_rows: List[dict[str, Any]] = [cast(dict[str, Any], item) for item in cursor]
 
         if not product_rows:
             return SearchResponse(total_results=0, page=page, limit=limit, results=[])

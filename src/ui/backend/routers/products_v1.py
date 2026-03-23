@@ -14,15 +14,14 @@ router = APIRouter(prefix="/api/v1", tags=["products"])
 
 @router.get("/products/{product_id}", response_model=ProductResponse)
 async def get_product_endpoint(product_id: int):
-    if not deps.supabase_client:
+    if deps.mongo_client is None or deps.products_col is None:
         raise HTTPException(status_code=500, detail="Database connection is not initialized.")
 
     try:
-        req = deps.supabase_client.table("products").select("*").eq("id", product_id).single()
-        db_response = req.execute()
-        if not db_response.data:
+        doc = deps.products_col.find_one({"id": product_id}, projection={"_id": 0})
+        if not doc:
             raise HTTPException(status_code=404, detail="Product not found")
-        return db_response.data
+        return doc
     except HTTPException:
         raise
     except Exception as e:

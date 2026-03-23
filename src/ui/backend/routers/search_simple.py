@@ -15,13 +15,14 @@ router = APIRouter(tags=["search"])
 
 
 async def _log_search_query(
-    client,
+    search_logs_col,
     query_text: str,
     bm25_res: list,
     vector_res: list,
     hybrid_res: list,
+    user_id: str | None = None,
 ) -> None:
-    if not client:
+    if search_logs_col is None:
         return
     try:
         bm25_top10 = [str(item[0]) for item in bm25_res[:10]] if bm25_res else []
@@ -32,10 +33,12 @@ async def _log_search_query(
             "bm25_top10": bm25_top10,
             "vector_top10": vector_top10,
             "hybrid_top10": hybrid_top10,
+            "user_id": user_id,
+            "created_at": time.time(),
         }
-        client.table("search_logs").insert(payload).execute()
+        search_logs_col.insert_one(payload)
     except Exception as e:
-        logger.error(f"Error logging search query to Supabase: {repr(e)}")
+        logger.error(f"Error logging search query to MongoDB: {repr(e)}")
 
 
 @router.get("/api/search", response_model=HybridSearchResponse)
@@ -43,10 +46,11 @@ async def hybrid_search_endpoint(
     background_tasks: BackgroundTasks,
     q: str = Query(..., min_length=1, description="Search query string"),
     top_k: int = Query(20, ge=1, le=200, description="Number of results to return"),
+    user_id: str = Query(None, description="Optional User ID for building profile"),
 ):
     start_time = time.perf_counter()
 
-    if not deps.supabase_client:
+    if deps.mongo_client is None or deps.products_col is None:
         raise HTTPException(status_code=500, detail="Database connection is not initialized.")
     if not deps.search_engine:
         raise HTTPException(status_code=500, detail="BM25 Search engine is not initialized.")
@@ -68,11 +72,12 @@ async def hybrid_search_endpoint(
 
         background_tasks.add_task(
             _log_search_query,
-            client=deps.supabase_client,
+            search_logs_col=deps.search_logs_col,
             query_text=q,
             bm25_res=bm25_res,
             vector_res=vec_res,
             hybrid_res=hybrid_res,
+            user_id=user_id,
         )
 
         if not final_ranked:
@@ -95,15 +100,8 @@ async def hybrid_search_endpoint(
             except (ValueError, TypeError):
                 int_ids.append(did)
 
-        db_response = (
-            deps.supabase_client.table("products").select("*").in_("id", int_ids).execute()
-        )
-        products_data = db_response.data or []
-
-        product_rows: List[dict[str, Any]] = []
-        for item in cast(List[Any], products_data):
-            if isinstance(item, dict):
-                product_rows.append(cast(dict[str, Any], item))
+        cursor = deps.products_col.find({"id": {"$in": int_ids}}, projection={"_id": 0})
+        product_rows: List[dict[str, Any]] = [cast(dict[str, Any], item) for item in cursor]
 
         sorted_products = sorted(
             product_rows,
