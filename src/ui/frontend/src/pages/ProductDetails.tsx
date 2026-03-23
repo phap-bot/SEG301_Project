@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react"
 import { useParams } from "react-router-dom"
-import { ExternalLink, Heart, Tag, AlertCircle } from "lucide-react"
+import { ExternalLink, Heart, Tag, AlertCircle, ImageOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PLATFORM_MAP, DEFAULT_PLATFORM } from "@/lib/platforms"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
     LineChart,
     Line,
@@ -14,6 +15,19 @@ import {
     Tooltip,
     ResponsiveContainer
 } from "recharts"
+
+const ProductImage = ({ src, alt, className }: { src?: string; alt: string; className?: string }) => {
+    const [error, setError] = useState(false)
+    if (!src || error) {
+        return (
+            <div className="flex flex-col items-center justify-center w-full h-full text-zinc-400 bg-zinc-50 rounded-xl">
+                <ImageOff className="w-12 h-12 mb-2 opacity-30" />
+                <span className="text-sm uppercase tracking-wider font-semibold opacity-50">No image available</span>
+            </div>
+        )
+    }
+    return <img src={src} alt={alt} className={className} onError={() => setError(true)} loading="lazy" />
+}
 
 interface Product {
     id: number
@@ -54,6 +68,63 @@ export function ProductDetails() {
     const [product, setProduct] = useState<Product | null>(null)
     const [loading, setLoading] = useState(true)
     const [priceHistory, setPriceHistory] = useState<any[]>([])
+    const [isTracked, setIsTracked] = useState(false)
+    const [platformVouchers, setPlatformVouchers] = useState<any[]>([])
+
+    useEffect(() => {
+        const fetchTrackingStatus = async () => {
+            if (!product) return
+            const userId = localStorage.getItem("user_id")
+            if (userId) {
+                try {
+                    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/user/${userId}/tracking`)
+                    if (res.ok) {
+                        const data = await res.json()
+                        const tr = data.tracked_products || []
+                        const vo = data.saved_vouchers || []
+                        setIsTracked(tr.some((p: Product) => p.id === product.id))
+                        setPlatformVouchers(vo.filter((v: any) => v.platform === product.platform))
+                        return
+                    }
+                } catch (err) {}
+            }
+            
+            // Fallback
+            const savedTracked = JSON.parse(localStorage.getItem("tracked_products") || "[]")
+            setIsTracked(savedTracked.some((p: Product) => p.id === product.id))
+            
+            const savedVo = JSON.parse(localStorage.getItem("saved_vouchers") || "[]")
+            const matching = savedVo.filter((v: any) => v.platform === product.platform)
+            setPlatformVouchers(matching)
+        }
+        fetchTrackingStatus()
+    }, [product])
+
+    const toggleTrack = async () => {
+        if (!product) return
+        
+        let saved = JSON.parse(localStorage.getItem("tracked_products") || "[]")
+        const userId = localStorage.getItem("user_id")
+        
+        if (isTracked) {
+            saved = saved.filter((p: Product) => p.id !== product.id)
+            setIsTracked(false)
+            if (userId) {
+                fetch(`${import.meta.env.VITE_API_URL}/api/v1/user/${userId}/tracked_products/${product.id}`, { method: "DELETE" }).catch(() => {})
+            }
+        } else {
+            saved.push(product)
+            setIsTracked(true)
+            if (userId) {
+                fetch(`${import.meta.env.VITE_API_URL}/api/v1/user/${userId}/tracked_products`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(product)
+                }).catch(() => {})
+            }
+        }
+        localStorage.setItem("tracked_products", JSON.stringify(saved))
+    }
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -75,7 +146,39 @@ export function ProductDetails() {
     }, [id])
 
     if (loading) {
-        return <div className="py-20 text-center text-muted-foreground animate-pulse">Loading product details...</div>
+        return (
+            <div className="max-w-6xl mx-auto space-y-8 animate-pulse">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+                    <div className="bg-white rounded-xl p-8 flex items-center justify-center border h-[400px] md:h-[500px]">
+                        <Skeleton className="w-full h-full rounded-xl" />
+                    </div>
+                    <div className="space-y-6 pt-4">
+                        <Skeleton className="h-6 w-32" />
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-3/4" />
+                        <div className="pt-4 space-y-4">
+                            <Skeleton className="h-12 w-48" />
+                            <Skeleton className="h-6 w-32" />
+                        </div>
+                        <div className="flex gap-4 pt-6 border-t mt-8">
+                            <Skeleton className="h-14 flex-1 rounded-xl" />
+                            <Skeleton className="h-14 w-16 rounded-xl" />
+                        </div>
+                        <div className="mt-8">
+                            <Skeleton className="h-24 w-full rounded-lg" />
+                        </div>
+                    </div>
+                </div>
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-6 w-48" />
+                    </CardHeader>
+                    <CardContent>
+                        <Skeleton className="h-[300px] w-full rounded-lg" />
+                    </CardContent>
+                </Card>
+            </div>
+        )
     }
 
     if (!product) {
@@ -92,16 +195,12 @@ export function ProductDetails() {
         <div className="max-w-6xl mx-auto space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
                 {/* Product Image Section */}
-                <div className="bg-zinc-50 rounded-xl p-8 flex items-center justify-center border h-[400px] md:h-[500px]">
-                    {product.image_url ? (
-                        <img
-                            src={product.image_url}
-                            alt={product.product_name}
-                            className="max-h-full max-w-full object-contain mix-blend-multiply"
-                        />
-                    ) : (
-                        <div className="text-muted-foreground">No image available</div>
-                    )}
+                <div className="bg-white rounded-xl p-8 flex items-center justify-center border h-[400px] md:h-[500px]">
+                    <ProductImage
+                        src={product.image_url}
+                        alt={product.product_name}
+                        className="w-full h-full object-contain mix-blend-multiply"
+                    />
                 </div>
 
                 {/* Product Info Section */}
@@ -148,19 +247,48 @@ export function ProductDetails() {
                                 )
                             })()}
                         </a>
-                        <Button size="lg" variant="outline" className="flex-none px-4">
-                            <Heart className="h-5 w-5" />
+                        <Button 
+                            size="lg" 
+                            variant={isTracked ? "default" : "outline"} 
+                            className={`flex-none px-4 transition-all ${isTracked ? "bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 border-red-200" : ""}`}
+                            onClick={toggleTrack}
+                        >
+                            <Heart className={`h-5 w-5 ${isTracked ? "fill-current" : ""}`} />
                         </Button>
                     </div>
 
-                    <div className="bg-primary/5 rounded-lg p-4 mt-6 border">
-                        <h3 className="font-semibold flex items-center gap-2 mb-2">
-                            <Tag className="h-4 w-4 text-primary" />
-                            Available Vouchers
+                    <div className="bg-primary/5 rounded-2xl p-6 mt-6 border border-primary/20 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-8 flex opacity-5 mix-blend-multiply pointer-events-none">
+                            <Tag className="w-32 h-32" />
+                        </div>
+                        <h3 className="font-extrabold text-xl flex items-center gap-2 mb-4">
+                            <Tag className="h-5 w-5 text-primary" />
+                            {platformVouchers.length > 0 ? `Saved Vouchers (${product.platform})` : "Available Vouchers"}
                         </h3>
-                        <p className="text-sm text-muted-foreground">
-                            Sign in to automatically apply our hidden vouchers and bring this price down further at checkout.
-                        </p>
+                        {platformVouchers.length > 0 ? (
+                            <div className="space-y-3 relative z-10">
+                                {platformVouchers.map((v, i) => (
+                                    <div key={i} className="flex items-center justify-between bg-white rounded-xl p-4 border shadow-sm">
+                                        <div className="flex-1 space-y-1">
+                                            <div className="font-extrabold text-blue-600 text-lg">{v.code}</div>
+                                            <div className="text-sm text-zinc-600 font-medium">{v.description || "Discount voucher"}</div>
+                                        </div>
+                                        <Button 
+                                            variant="outline"
+                                            className="px-6 hover:bg-blue-50 border-blue-200 text-blue-600 hover:text-blue-700" 
+                                            onClick={() => navigator.clipboard.writeText(v.code)}
+                                        >
+                                            Copy Code
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-muted-foreground leading-relaxed relative z-10 font-medium">
+                                Sign in to automatically apply our hidden vouchers and bring this price down further at checkout. 
+                                Or use the Compare dashboard to hunt for more vouchers automatically!
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>
@@ -188,7 +316,7 @@ export function ProductDetails() {
                                     stroke="#888888"
                                 />
                                 <Tooltip
-                                    formatter={(value: number | string) => [`${Number(value).toLocaleString("vi-VN")}đ`, "Price"]}
+                                    formatter={(value?: number | string) => [`${Number(value ?? 0).toLocaleString("vi-VN")}đ`, "Price"]}
                                     contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
                                 />
                                 <Line

@@ -1,217 +1,184 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Eye, EyeOff, Loader2, AlertCircle, TrendingUp } from "lucide-react"
 
 export function Login() {
+    const navigate = useNavigate()
+    const [isLogin, setIsLogin] = useState(true)
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
-    const [fullName, setFullName] = useState("")
+    const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState("")
-    const [successMessage, setSuccessMessage] = useState("")
     const [loading, setLoading] = useState(false)
-    const [activeTab, setActiveTab] = useState("login")
-    const navigate = useNavigate()
 
-    const handleAuth = async (isSignUp: boolean) => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setError("")
+        if (!email.trim() || !password.trim()) {
+            setError("Email and password are required")
+            return
+        }
+
+        setLoading(true)
         try {
-            setLoading(true)
-            setError("")
-            setSuccessMessage("")
-            let res;
-            if (isSignUp) {
-                res = await supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: {
-                            full_name: fullName
-                        }
-                    }
-                })
-                if (res.error) throw res.error
-                setSuccessMessage("Account created successfully! Please log in.")
-                setActiveTab("login")
+            const endpoint = isLogin ? "/api/v1/auth/login" : "/api/v1/auth/signup"
+            const res = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: email.trim(), password })
+            })
+            
+            const data = await res.json()
+            if (!res.ok) {
+                setError(data.detail || "Authentication failed")
             } else {
-                res = await supabase.auth.signInWithPassword({ email, password })
-                if (res.error) throw res.error
+                localStorage.removeItem("tracked_products")
+                localStorage.removeItem("saved_vouchers")
+                localStorage.setItem("user_id", data.user_id)
+                localStorage.setItem("user_name", data.name)
+                
                 navigate("/dashboard")
+                window.location.reload()
             }
-        } catch (error: any) {
-            setError(error.message || "An error occurred during authentication")
+        } catch (err) {
+            setError("Network error. Make sure your backend API is running.")
         } finally {
             setLoading(false)
         }
     }
 
-    const oAuthLogin = async (provider: 'google' | 'facebook') => {
-        try {
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider: provider,
-                options: {
-                    redirectTo: `${window.location.origin}/dashboard`
-                }
-            })
-            if (error) throw error
-        } catch (error: any) {
-            setError(error.message || `An error occurred during ${provider} authentication`)
-        }
-    }
-
     return (
-        <div className="flex h-[calc(100vh-14rem)] items-center justify-center pt-10 px-4">
-            <Card className="w-full max-w-md border-0 shadow-lg sm:border sm:bg-white rounded-2xl">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <CardHeader className="space-y-1 pb-4">
-                        <TabsList className="grid w-full grid-cols-2 mb-4 h-12 rounded-xl bg-zinc-100">
-                            <TabsTrigger value="login" className="rounded-lg text-base font-medium">Log in</TabsTrigger>
-                            <TabsTrigger value="register" className="rounded-lg text-base font-medium">Sign up</TabsTrigger>
-                        </TabsList>
+        <div className="min-h-[calc(100vh-4rem)] w-full lg:grid lg:grid-cols-2 bg-white">
+            {/* Left Box - Authentication Form */}
+            <div className="flex flex-col justify-center items-center px-6 py-12 lg:px-8">
+                <div className="w-full max-w-[400px] flex flex-col justify-center space-y-8">
+                    <div className="flex flex-col space-y-2 text-center lg:text-left">
+                        <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
+                            {isLogin ? "Sign in to account" : "Create an account"}
+                        </h1>
+                        <p className="text-sm text-zinc-500">
+                            {isLogin 
+                                ? "Enter your email and password below to sign in." 
+                                : "Enter your details below to start saving on top deals."}
+                        </p>
+                    </div>
 
-                        <CardTitle className="text-2xl font-bold text-center">Welcome to PriceSaver</CardTitle>
-                        <CardDescription className="text-center text-base">
-                            The best deals from all over the internet.
-                        </CardDescription>
-                    </CardHeader>
-
-                    <CardContent className="space-y-6">
-                        <TabsContent value="login" className="space-y-4 m-0">
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="login-email">Email</Label>
-                                    <Input
-                                        id="login-email"
-                                        type="email"
-                                        placeholder="m@example.com"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        required
-                                        className="h-12 rounded-xl"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor="login-password">Password</Label>
-                                        <a href="#" className="text-sm font-medium text-primary hover:underline">Forgot password?</a>
-                                    </div>
-                                    <Input
-                                        id="login-password"
-                                        type="password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        required
-                                        className="h-12 rounded-xl"
-                                    />
-                                </div>
-                                {error && <p className="text-sm text-red-500 font-medium text-center">{error}</p>}
-                                {successMessage && <p className="text-sm text-green-600 font-medium text-center">{successMessage}</p>}
-                                <Button
-                                    className="w-full h-12 rounded-xl text-base font-bold shadow-md hover:shadow-lg transition-all"
-                                    onClick={() => handleAuth(false)}
-                                    disabled={loading || !email || !password}
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        {error && (
+                            <div className="p-3 text-sm font-medium text-red-600 bg-red-50 rounded-md border border-red-100 flex items-center gap-2">
+                                <AlertCircle className="h-4 w-4 shrink-0" />
+                                {error}
+                            </div>
+                        )}
+                        
+                        <div className="space-y-2">
+                            <Label htmlFor="email" className="text-zinc-700">Email Address</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="name@example.com"
+                                className="h-11 rounded-md border-zinc-300 focus:border-zinc-900 focus:ring-zinc-900 transition-colors"
+                                required
+                            />
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <Label htmlFor="password" className="text-zinc-700">Password</Label>
+                                {isLogin && (
+                                    <button type="button" className="text-sm text-zinc-500 hover:text-zinc-900 font-medium">
+                                        Forgot password?
+                                    </button>
+                                )}
+                            </div>
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    type={showPassword ? "text" : "password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Enter your password"
+                                    className="h-11 rounded-md border-zinc-300 focus:border-zinc-900 focus:ring-zinc-900 transition-colors pr-10"
+                                    required
+                                    minLength={6}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 outline-none"
                                 >
-                                    {loading ? "Logging in..." : "Log in"}
-                                </Button>
-                            </div>
-                        </TabsContent>
-
-                        <TabsContent value="register" className="space-y-4 m-0">
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="register-fullname">Full Name</Label>
-                                    <Input
-                                        id="register-fullname"
-                                        type="text"
-                                        placeholder="John Doe"
-                                        value={fullName}
-                                        onChange={(e) => setFullName(e.target.value)}
-                                        required
-                                        className="h-12 rounded-xl"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="register-email">Email</Label>
-                                    <Input
-                                        id="register-email"
-                                        type="email"
-                                        placeholder="m@example.com"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        required
-                                        className="h-12 rounded-xl"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="register-password">Password</Label>
-                                    <Input
-                                        id="register-password"
-                                        type="password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        required
-                                        className="h-12 rounded-xl"
-                                    />
-                                </div>
-                                {error && <p className="text-sm text-red-500 font-medium text-center">{error}</p>}
-                                <Button
-                                    className="w-full h-12 rounded-xl text-base font-bold shadow-md hover:shadow-lg transition-all"
-                                    onClick={() => handleAuth(true)}
-                                    disabled={loading || !email || !password || !fullName}
-                                >
-                                    {loading ? "Creating account..." : "Sign up"}
-                                </Button>
-
-                                <p className="px-8 text-center text-sm text-muted-foreground">
-                                    By clicking continue, you agree to our{" "}
-                                    <a href="#" className="underline underline-offset-4 hover:text-primary">Terms of Service</a>{" "}
-                                    and{" "}
-                                    <a href="#" className="underline underline-offset-4 hover:text-primary">Privacy Policy</a>.
-                                </p>
-                            </div>
-                        </TabsContent>
-
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t border-zinc-200" />
-                            </div>
-                            <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-white px-2 text-muted-foreground font-medium">
-                                    Or continue with
-                                </span>
+                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
                             </div>
                         </div>
+                        
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full h-11 bg-zinc-900 hover:bg-zinc-800 text-white rounded-md font-medium transition-all"
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Please wait
+                                </>
+                            ) : (
+                                isLogin ? "Sign In" : "Sign Up"
+                            )}
+                        </Button>
+                    </form>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <Button
-                                variant="outline"
-                                className="h-12 rounded-xl border-zinc-200 hover:bg-zinc-50 font-semibold"
-                                onClick={() => oAuthLogin('google')}
-                                type="button"
-                            >
-                                <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                                    <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
-                                </svg>
-                                Google
-                            </Button>
-                            <Button
-                                variant="outline"
-                                className="h-12 rounded-xl hover:bg-[#1877F2]/10 hover:text-[#1877F2] font-semibold"
-                                onClick={() => oAuthLogin('facebook')}
-                                type="button"
-                            >
-                                <svg className="mr-2 h-5 w-5 fill-[#1877F2]" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="facebook" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                                    <path fill="currentColor" d="M504 256C504 119 393 8 256 8S8 119 8 256c0 123.78 90.69 226.38 209.25 245V327.69h-63V256h63v-54.64c0-62.15 37-96.48 93.67-96.48 27.14 0 55.52 4.84 55.52 4.84v61h-31.28c-30.8 0-40.41 19.12-40.41 38.73V256h68.78l-11 71.69h-57.78V501C413.31 482.38 504 379.78 504 256z"></path>
-                                </svg>
-                                Facebook
-                            </Button>
+                    <div className="text-center text-sm text-zinc-500">
+                        {isLogin ? "Don't have an account? " : "Already have an account? "}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsLogin(!isLogin)
+                                setError("")
+                            }}
+                            className="text-zinc-900 font-semibold hover:underline underline-offset-4"
+                        >
+                            {isLogin ? "Sign up" : "Sign in"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Right Box - Aesthetic Branding */}
+            <div className="hidden lg:flex relative w-full h-full bg-zinc-900 flex-col justify-between p-12 text-white overflow-hidden">
+                <div className="absolute inset-0 max-w-full h-full overflow-hidden opacity-20 pointer-events-none">
+                    {/* Abstract background styling to match professional SaaS */}
+                    <svg className="absolute left-0 top-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <polygon points="0,100 100,0 100,100" fill="currentColor" className="text-zinc-800" />
+                    </svg>
+                </div>
+                
+                <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="h-8 w-8 bg-blue-600 rounded-md flex items-center justify-center shadow-sm">
+                            <TrendingUp className="h-5 w-5 text-white" />
                         </div>
-                    </CardContent>
-                </Tabs>
-            </Card>
+                        <span className="text-2xl font-bold tracking-tight">PriceSaver</span>
+                    </div>
+                    <p className="text-zinc-400 text-lg font-medium">The intelligent deal tracker.</p>
+                </div>
+
+                <div className="relative z-10 max-w-lg mt-auto">
+                    <blockquote className="space-y-4">
+                        <p className="text-2xl font-medium leading-snug">
+                            "Thanks to PriceSaver's automated vouchers and tracking, our team easily sourced office supplies at historically lowest prices."
+                        </p>
+                        <footer className="text-sm text-zinc-400">
+                            Your are the best with buyer
+                        </footer>
+                    </blockquote>
+                </div>
+            </div>
         </div>
     )
 }
