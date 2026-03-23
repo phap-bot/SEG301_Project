@@ -6,6 +6,14 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import os
+import logging
+from contextlib import asynccontextmanager
+
+from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from . import deps
 from .routers.compare_v1 import router as compare_v1_router
 from .routers.health import router as health_router
@@ -15,6 +23,7 @@ from .routers.search_v1 import router as search_v1_router
 from .routers.log_search_v1 import router as log_search_router
 from .routers.profile_user_info_v1 import router as profile_user_info_router
 from .routers.user_tracking_v1 import router as user_tracking_router
+from .routers.auth_v1 import router as auth_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -123,3 +132,4 @@ app.include_router(compare_v1_router)     # /api/v1/compare
 app.include_router(log_search_router)     # /api/v1/log_search
 app.include_router(profile_user_info_router)  # /api/v1/profile_user_info/{user_id}
 app.include_router(user_tracking_router)  # /api/v1/user/{user_id}
+app.include_router(auth_router)           # /api/v1/auth
