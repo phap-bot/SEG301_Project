@@ -789,3 +789,24 @@ Thực hiện đánh giá chuyên sâu toàn bộ hệ thống từ Indexing đ�
 - **Total Documents:** 1,028,125
 - **Indexing Time:** 3m 46s
 - **Search Latency:** 0.05s - 0.2s
+
+trong file readme sửa lại thêm tí hướng dẫn các bước để có thể ra kết quả cuối cùng đi 
+
+
+Tôi đã tự động cập nhật lại file 
+
+README.md
+ ở ngoài thư mục gốc cho nhóm bạn rồi nhé!
+
+Tôi vừa bổ sung thêm section 5.3. Milestone 3: Chạy Toàn Bộ Hệ Thống Tìm Kiếm (Hybrid AI + Web UI) rất rành mạch, đi từ A đến Z (từ bước import MongoDB, tạo Index BM25, AI Vector, chạy file 
+
+.py
+ fix lỗi ID, cho tới bước khởi chạy Backend, tạo 
+
+.env
+ và bật Frontend).
+
+Bây giờ bức tranh tổng thể của dự án và các bước chạy đã cực kỳ rõ ràng trên Document chính thức của kịch bản, sẵn sàng để đồng đội vào đọc và làm theo không sợ sai sót gì nữa! Bạn có thể mở file 
+
+README.md
+ lên để kiểm tra luôn nha. Cần điều chỉnh câu chữ chỗ nào cứ báo tôi!

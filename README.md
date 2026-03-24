@@ -91,8 +91,8 @@ Navigate to the specific crawler directory and start the process:
   python src/crawler/Crawl_eBay/spider.py
   ```
 
-### 5.2. Chạy Indexing & Ranking
-Sau khi đã thu thập dữ liệu, bạn cần chạy các script sau để xây dựng chỉ mục và tính toán thứ hạng:
+### 5.2. Milestone 2: Chạy Indexing & Ranking (Console)
+Sau khi đã thu thập dữ liệu gốc, bạn có thể kiểm thử riêng thuật toán BM25 qua Console:
 
 1.  **Xây dựng Index (SPIMI):**
     ```bash
@@ -102,6 +102,46 @@ Sau khi đã thu thập dữ liệu, bạn cần chạy các script sau để x�
     ```bash
     python src/ranking/bm25.py
     ```
+
+### 5.3. Milestone 3: Chạy Toàn Bộ Hệ Thống Tìm Kiếm (Hybrid AI + Web UI)
+Để vận hành bản đầy đủ nhất của dự án (Giao diện Web + CSDL MongoDB + Trí tuệ AI + Thuật toán kết hợp BM25), hãy làm tuần tự theo 5 bước sau:
+
+**Bước 1: Khởi tạo Database MongoDB**
+Đảm bảo bạn đang chạy MongoDB ở `localhost:27017`. Tải file `data_1tr...jsonl` (~500MB) về mấu chốt, sau đó chạy script import tự động đánh ID để nạp vào cơ sở dữ liệu:
+```bash
+python import_mongo.py
+```
+
+**Bước 2: Xây dựng Não Bộ Tìm Kiếm (Indexes)**
+Bạn cần Build ra 2 bộ não tìm kiếm chạy song song:
+```bash
+# 1. Não từ khóa (SPIMI/BM25) - Chạy cho 1 triệu sản phẩm
+python src/indexer/build_index.py --input data_1tr_clean_tokenized.jsonl
+
+# 2. Não ý nghĩa (Vector AI) - Sẽ mất từ 30p đến vài giờ tùy cấu hình máy
+python src/indexer/vector_indexer.py
+
+# 3. Chạy script đồng bộ ID giữa AI và MongoDB để tránh lỗi hiển thị sai sản phẩm
+python fix_mapping.py
+```
+
+**Bước 3: Khởi động Backend (FastAPI)**
+Mở một terminal tại thư mục gốc của dự án và chạy:
+```bash
+uvicorn src.ui.backend.main:app --reload --port 8000
+```
+*(Backend sẽ nạp 2 bộ não tìm kiếm trên lên RAM học để trả kết quả)*.
+
+**Bước 4: Khởi động Giao Diện (React UI)**
+Mở terminal thứ hai, tạo file `src/ui/frontend/.env` điền dòng `VITE_API_URL=http://localhost:8000` rồi khởi động giao diện:
+```bash
+cd src/ui/frontend
+npm install
+npm run dev
+```
+
+**Bước 5: Trải Nghiệm**
+Vào link `http://localhost:5173/`, gõ từ khóa và tận hưởng tốc độ của hệ thống Hybrid Search!
 
 ---
 
