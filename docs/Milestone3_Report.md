@@ -76,7 +76,7 @@ if first_two_q.intersection(first_two_doc):
 *Tác dụng:* Ngăn chặn các sản phẩm "spam" từ khóa lên top, đồng thời ưu tiên các sản phẩm có tên chính xác bắt đầu bằng cụm từ khóa người dùng tìm kiếm.
 
 ---
-<img width="1376" height="770" alt="image" src="https://github.com/user-attachments/assets/55245c45-6eb9-48ed-ba95-af53fe74674e" />
+<img width="860" height="2002" alt="image" src="https://github.com/user-attachments/assets/d7c687b2-8927-4429-b5fd-94e9473c380d" />
 
 ## 2. Tìm kiếm theo ngữ nghĩa (Vector Engine)
 **Vị trí file:** `src/ranking/vector.py`
