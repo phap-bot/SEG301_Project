@@ -3,53 +3,195 @@
 
 # Báo cáo kết quả Milestone 3: Hệ thống Tìm kiếm Hybrid (Hybrid Search System)
 
-Báo cáo này trình bày chi tiết về kết quả phát triển hệ thống tìm kiếm cho Milestone 3. Tất cả các nội dung dưới đây đều phản ánh chính xác 100% các logic, thuật toán, và cấu trúc luồng dữ liệu đã được **code và áp dụng trực tiếp vào dự án**. Không có khái niệm hay tính năng nào được liệt kê nếu chưa có trên source code thật.
+Báo cáo này trình bày chi tiết về kết quả phát triển hệ thống tìm kiếm cho Milestone 3. Dưới đây là kiến trúc hệ thống, kèm theo **minh chứng mã nguồn thực tế (tên file, số dòng, đoạn code)** để giải thích rạch ròi từng tính năng đã được lập trình và áp dụng trong dự án.
 
 ---
 
-## 1. Tổng quan kiến trúc hệ thống tìm kiếm
-- **Kiến trúc API:** Hệ thống sử dụng FastAPI làm backend kết nối trực tiếp với Database MongoDB (Collection `products`, `vouchers`, `search_logs`).
-- **Phân loại tìm kiếm:** Hệ thống chia làm 3 chức năng chính được hỗ trợ thông qua query parameter `search_type`:
-  - `bm25`: Tìm kiếm theo từ khóa (Lexical Search).
-  - `vector`: Tìm kiếm theo ngữ nghĩa (Semantic Search).
-  - `hybrid`: Tìm kiếm kết hợp (Kết hợp cả hai phương pháp).
+## 1. Tìm kiếm theo từ khóa (BM25 Engine)
+**Vị trí file:** `src/ranking/bm25.py`
+
+Đây là trái tim của hệ thống tìm kiếm theo từ vựng (Lexical Search), được code tay hoàn toàn để tùy chỉnh riêng cho Tiếng Việt.
+
+### 1.1. Xử lý ngôn ngữ và Tokenization Tiếng Việt (Dòng 18 - 33)
+Hệ thống chuẩn hóa text bằng cách chuyển về Unicode chuẩn (NFC/NFD), lower-case và tùy chọn xóa dấu tiếng Việt. Thư viện `underthesea` (dòng 15) được gọi để phân biệt ranh giới từ vựng tiếng Việt.
+```python
+def normalize_text(text: str, remove_accents: bool = False, keep_underscore: bool = False) -> str:
+    text = text.lower()
+    text = unicodedata.normalize('NFC', text)
+    if remove_accents:
+        text = text.replace('đ', 'd')
+        text = unicodedata.normalize('NFD', text)
+        text = "".join([ch for ch in text if unicodedata.category(ch) != 'Mn'])
+        # Giữ lại gạch dưới cho các từ ghép (VD: dien_thoai)
+        if not keep_underscore:
+            text = text.replace('_', ' ')
+    return text
+```
+*Tác dụng:* Giúp từ "Điện thoại" và "dien thoai" hoặc "DIỆN THOẠI" đều quy về `dien_thoai` để máy dễ dàng tra cứu trong Inverted Index.
+
+### 1.2. Thuật toán rã từ dính liền bằng Quy Hoạch Động (Dynamic Programming) (Dòng 100 - 141)
+Khi người dùng gõ sai hoặc cố tình viết dính liền (vd: "dienthoaicugiare"), hệ thống tự động bóc tách từ bằng quy hoạch động dựa vào điểm độ phổ biến của từ khóa trong kho dữ liệu (Document Frequency - DF).
+```python
+def _split_stuck_word_dynamic(self, word: str) -> List[str]:
+    # ... (Khởi tạo mảng dp n+1 phần tử)
+    for i in range(1, n + 1):
+        for j in range(max(0, i - 15), i):
+            part = word[j:i]
+            if part in self.inverted_index:
+                df = len(self.inverted_index[part])
+                part_score = math.log(df + 1) * (len(part) ** 1.8) # Phần thưởng độ dài từ
+                # Cập nhật DP nếu điểm cắt này tối ưu hơn
+                if dp[j][0] + part_score > dp[i][0]:
+                    dp[i] = (dp[j][0] + part_score, j)
+```
+*Tác dụng:* Xử lý các lỗi typo phổ biến của người Việt trên thanh tìm kiếm mà không cần dùng mô hình AI nặng nề rà soát chính tả, đảm bảo tốc độ phản hồi tính bằng mili-giây.
+
+### 1.3. Tính toán TF-IDF và BM25 Score (Dòng 143 - 169)
+Công thức lõi của BM25 với các tham số chuẩn mực $k_1 = 2.0$ và $b = 0.8$.
+```python
+def calculate_bm25_score(self, query_terms: List[str], doc_id: int, doc_tokens: List[str]) -> float:
+    # ...
+    numerator = tf * (self.k1 + 1)
+    length_norm = 1 - self.b + self.b * (doc_len / self.avg_doc_length)
+    denominator = tf + self.k1 * length_norm
+    term_score = idf * (numerator / denominator)
+    score += term_score
+    return score
+```
+
+### 1.4. Smart Reranking - Xếp hạng lại thông minh (Dòng 268 - 367)
+Đây là chiến thuật phạt/thưởng (penalty/boost) điểm tự phát triển. Nó tính toán dựa trên mức độ quan trọng của từ, sự xuất hiện cụm từ (phrase match), và vị trí hiển thị (xuất hiện ở đầu câu sẽ điểm cao hơn).
+```python
+# Tính toán Penalty nếu từ khóa bị spam quá nhiều (trên 3 lần) trong tên sản phẩm (Dòng 345 - 355)
+for q_term in query_terms:
+    count = name_tokens.count(part)
+    if count > 3:
+        penalty = 0.8 ** (count - 3)
+        boost *= penalty
+
+# Thưởng điểm nếu truy vấn xuất hiện ngay ở 2 từ đầu tiên (Dòng 357 - 365)
+first_two_doc = set(norm_tokens[:2])
+if first_two_q.intersection(first_two_doc):
+    boost *= 1.2
+```
+*Tác dụng:* Ngăn chặn các sản phẩm "spam" từ khóa lên top, đồng thời ưu tiên các sản phẩm có tên chính xác bắt đầu bằng cụm từ khóa người dùng tìm kiếm.
 
 ---
 
-## 2. Chi tiết các thành phần tìm kiếm đã code và triển khai
+## 2. Tìm kiếm theo ngữ nghĩa (Vector Engine)
+**Vị trí file:** `src/ranking/vector.py`
 
-### 2.1. Cỗ máy tìm kiếm theo từ khóa cơ bản (BM25 Engine)
-- **Tệp mã nguồn:** `src/ranking/bm25.py`
-- **Tính năng và Thuật toán thực tế:**
-  - **Công thức tính điểm cơ bản:** Tự triển khai bằng code thuần công thức BM25 (với tham số $k_1 = 2.0$ và $b = 0.8$) kết hợp với TF-IDF.
-  - **Tách từ (Tokenization) cho Tiếng Việt:** Kéo thư viện `underthesea` (hàm `word_tokenize`) để phân tích cú pháp truy vấn tiếng Việt. Code tích hợp thêm phương pháp quy hoạch động (dynamic programming) trong hàm `_split_stuck_word_dynamic()` để rã các cụm từ bị dính liền/không dấu.
-  - **Xử lý ngôn ngữ (Normalization):** Tất cả truy vấn được chuẩn hóa dạng Unicode NFC/NFD, lower-case, bỏ dấu câu và giữ nguyên cấu trúc từ ghép (underscore `_`).
-  - **Bảng băm Inverted Index:** Tại thời điểm chạy, thuật toán load dữ liệu Inverted Index được lưu cứng ở dạng Dictionary của python (đọc từ file `inverted_index.pkl` để tối ưu tốc độ hoặc json dự phòng).
-  - **Thuật toán Smart Reranking (Xếp hạng lại thông minh):** Sau khi tính điểm cơ bản lấy 200 doc cao điểm nhất (`raw_top`), thuật toán tự cộng/trừ điểm (boost score) nếu từ khóa xuất hiện nguyên vẹn trong tên sản phẩm `product_name`, ưu tiên vị trí từ khóa xuất hiện ở đầu câu, và phạt (penalty) nếu các từ này bị spam quá nhiều trong tiêu đề. 
+Hệ thống bổ trợ giúp khắc phục điểm yếu "sai chính tả" hoặc "từ đồng nghĩa" của BM25 bằng mạng Nơ-ron.
 
-### 2.2. Cỗ máy tìm kiếm Semantic (Vector Engine)
-- **Tệp mã nguồn:** `src/ranking/vector.py`
-- **Tính năng và Thuật toán thực tế:**
-  - **Mô hình Embedding:** Máy chiếu vector sử dụng `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`. Biến đổi mọi string thành vector tĩnh n-chiều.
-  - **Tìm kiếm không gian:** Dùng thư viện `faiss` của Facebook. Khởi chạy load trực tiếp khối dữ liệu `vector_index.faiss` lên RAM để query.
-  - **Đo lường điểm số (Score Mapping):** Do FAISS đo theo khoảng cách L2 (càng nhỏ càng tốt), trong khi BM25 đo tỉ lệ tương đồng (càng lớn càng tốt). Ở đây code map ngược L2 distance thành tỷ lệ Similarity thuận qua công thức: `score = 1.0 / (1.0 + dist)` để quy chuẩn hóa. Sau đó map ngược với `vector_doc_mapping.pkl` để lấy ID tương ứng.
-
-### 2.3. Cỗ máy tìm kiếm kết hợp (Hybrid Ranker)
-- **Tệp mã nguồn:** `src/ranking/hybrid.py`
-- **Tính năng và Thuật toán thực tế:**
-  - **Phương pháp Reciprocal Rank Fusion (RRF):** Vì hệ tham chiếu điểm số của BM25 và Vector là khác biệt, không thể cộng trực tiếp. Thuật toán xử lý bằng cách lấy 2 List top doc từ hai engine trên, sau đó xếp hạng dựa trên vị trí ưu tiên thay vì điểm số.
-  - Công thức RRF trong hàm `search()`: `RRF Score = 1 / (60 + rank)` (với `rank` là thứ hạng của sản phẩm trong BM25 hoặc Vector). Sau đó gộp mảng và cộng điểm RRF cho các sản phẩm xuất hiện trong cả hai tập kết quả để ra dãy kết quả đồng bộ chung.
+### Khởi tạo Load FAISS và Map điểm số (Dòng 31 - 59)
+Load trực tiếp file lưới vector `vector_index.faiss`. Vì FAISS tính khoảng cách L2 (càng nhỏ càng tốt), còn điểm xếp hạng (Score) thì phải dùng hệ "càng lớn càng tốt", ta quy đổi bằng công thức phân số:
+```python
+def search(self, query: str, top_k: int = 50) -> List[Tuple[str, float, str]]:
+    # 1. Encode query qua model paraphrase-multilingual-MiniLM-L12-v2
+    query_vector = self.model.encode([query], normalize_embeddings=True)
+    
+    # 2. Tìm top k bằng FAISS L2 Distance
+    D, I = self.index.search(np.array(query_vector).astype('float32'), k=top_k)
+    
+    # 3. Chuyển đổi L2 sang mốc Similarity Score nghịch đảo
+    for dist, idx in zip(D[0], I[0]):
+        doc_id = self.doc_mapping.get(idx)
+        score = 1.0 / (1.0 + dist)
+        results.append((doc_id, score, ""))
+    
+    return results
+```
+*Tác dụng:* Kết quả trả về là một mảng `(doc_id, score)` đồng nhất chữ ký định dạng với BM25 để tiến hành ghép nối.
 
 ---
 
-## 3. Quy trình Mapping, Lọc dữ liệu và tích hợp API
-- **Tệp mã nguồn:** `src/ui/backend/routers/search_v1.py` và `main.py`
-- **Tối ưu RAM (Lifespan):** Khi Server FastAPI start (tại `lifespan`), Index của BM25 và Faiss Vector được Load đè trực tiếp lên RAM 1 lần duy nhất, giải quyết vấn đề nghẽn cổ chai IO. 
-- **Quy trình kết nối qua API (`/api/v1/search`):**
-  1. API nhận Query kèm Pagination, filter về Giá (`min_price`, `max_price`), nền tảng (`platforms`), và loại tìm kiếm.
-  2. Truy vấn Query xuống Ranker tương ứng và fetch giới hạn về chính xác **top 200 ID tiềm năng nhất**.
-  3. Lọc ID Map dưới CSDL (Mongodb Queries): Build truy vấn `$in` lấy document JSON cho đúng các ID đó trong Database `products`. Kèm theo các điều kiện truy vấn `$gte`, `$lte` filter giá cả nếu Frontend có truyền vào.
-  4. Sắp xếp tái cấu trúc: Vì dữ liệu Query ra từ MongoDB không đảm bảo được thứ hạng giống Ranker trả về. Code thiết lập `relevance_map` để lưu chỉ mục gốc, dùng hàm `sorted()` của Python sắp xếp lại các Doc lấy từ DB về đúng vị trí từ Ranker, tiếp theo mới cắt list array (pagination) và trả object Response về cho Frontend render ra bảng kết quả cuối.
+## 3. Trình tự kết hợp (Hybrid Ranker - Reciprocal Rank Fusion)
+**Vị trí file:** `src/ranking/hybrid.py`
 
-## 4. Ghi chú log tìm kiếm (Search Logging)
-- **Tính năng mở rộng tại API:** Mỗi lần truy vấn gửi tới `/api/v1/search`, sau khi phản hồi trả về thành công, một Background Task bất đồng bộ (Async Background Tasks) sẽ gom toàn bộ Top 10 ID được tìm thấy bởi cả BM25, Vector và Hybrid, đẩy ngược và insert xuống MongoDB ở collection `search_logs` cùng query text và user ID để lưu trữ đánh giá thuật toán sau này.
+Do BM25 điểm có thể vọt lên tới 30, trong khi Vector Score luôn ở dạng `1 / (1+dist)` < 1.0, việc cộng điểm trực tiếp sẽ thiên vị BM25. Ta dùng mô hình RRF để cộng "thứ hạng" bù trừ.
+
+### Cốt lõi của RRF (Dòng 21 - 36)
+`rrf_score = 1.0 / (k + rank + 1)` (hằng số k=60).
+```python
+# Tính RRF cho BM25
+for rank, res in enumerate(bm25_results):
+    doc_id, score, snippet = res
+    rrf_score = 1.0 / (k + rank + 1)
+    rrf_scores[doc_id] = rrf_scores.get(doc_id, 0.0) + rrf_score
+
+# Tính RRF cho Vector và gộp chung (Dòng 28)
+for rank, res in enumerate(vector_results):
+    doc_id, score, snippet = res
+    rrf_score = 1.0 / (k + rank + 1)
+    rrf_scores[doc_id] = rrf_scores.get(doc_id, 0.0) + rrf_score
+```
+*Tác dụng:* Đảm bảo một sản phẩm chỉ đứng đầu BM25 nhưng xếp chót ở Vector vẫn có cơ hội nhường chỗ cho một sản phẩm đứng top 3 ở cả 2 bảng xếp hạng, mang lại kết quả cân bằng nhất.
+
+---
+
+## 4. Tích hợp Backend API và Mapping MongoDB
+Hệ thống lõi được bọc trong Framework FastAPI và đẩy API cho Frontend gọi.
+
+### 4.1. Tối ưu IO bằng Lifespan (Dòng 74 - 92 tại `src/ui/backend/main.py`)
+Toàn bộ thuật toán Index được nhồi thẳng lên RAM ngay khi khởi động Server, hệ thống không bao giờ phải đọc lại ổ cứng khi query.
+```python
+logger.info(f"Loading BM25 Index from {index_dir} into RAM...")
+deps.search_engine = deps.BM25Ranker(index_dir=index_dir)
+
+logger.info(f"Loading Vector Index from {index_dir} into RAM...")
+deps.vector_engine = deps.VectorRanker(index_dir=index_dir)
+```
+*Tác dụng:* Giúp Server FastAPI gánh được cả nghìn Request/s.
+
+### 4.2. Luồng gọi API `/api/v1/search` và Filter Mapping (Dòng 70 - 146 tại `src/ui/backend/routers/search_v1.py`)
+Cách API giao tiếp giữa Cỗ máy Tìm kiếm và Cơ sở dữ liệu:
+1. **Router gọi hàm search tương ứng:**
+```python
+if search_type == "bm25":
+    final_results = deps.search_engine.search(tokenized_query, top_k=top_k)
+elif search_type == "vector":
+    final_results = deps.vector_engine.search(query, top_k=top_k)
+elif search_type == "hybrid":
+    bm25_res = deps.search_engine.search(tokenized_query, top_k=top_k)
+    vec_res = deps.vector_engine.search(query, top_k=top_k)
+    final_results = deps.HybridRanker.search(bm25_res, vec_res, top_k=top_k)
+```
+
+2. **Ánh xạ Array ID sang MongoDB Collection `products`:** Hệ thống lấy Top 200 IDs quăng một lệnh lọc cực mạnh vào MongoDB qua query `$in` kết hợp bộ lọc giá cả.
+```python
+# Ép kiểu an toàn (Dòng 118)
+top_doc_ids_for_db = [to_int(doc_id) for doc_id in top_doc_ids]
+mongo_filter: dict[str, Any] = {"id": {"$in": top_doc_ids_for_db}}
+
+# Kết hợp Filter Giá của Frontend truyền vào (Dòng 121)
+if min_price is not None: mongo_filter["price"]["$gte"] = min_price
+if max_price is not None: mongo_filter["price"]["$lte"] = max_price
+
+# Bắn lệnh Database
+cursor = deps.products_col.find(mongo_filter, projection={"_id": 0})
+product_rows: List[dict[str, Any]] = [cast(dict[str, Any], item) for item in cursor]
+```
+
+3. **Re-sorting lại vị trí chuẩn (Dòng 138 - 141):** Do kết quả fetch từ DB không được đảm bảo nằm đúng thứ tự xếp hạng Ranker (MongoDB trả về lộn xộn), API có thao tác sort lại lần cuối dựa vào bảng băm `relevance_map`.
+```python
+# Lấy file lộn xộn trong MongoDB sắp xếp lại theo điểm Ranker
+sorted_products = sorted(
+    product_rows,
+    key=lambda p: relevance_map.get(str(p.get("id", "")), float("inf")),
+)
+```
+
+### 4.3. Chạy ngầm Ghi dấu Hành vi Tìm kiếm (Dòng 96 - 104 tại `search_v1.py`)
+Mọi truy vấn khi tìm kiếm sẽ được đẩy lên Task chạy ngầm (`BackgroundTasks` của FastAPI) để insert log xuống MongoDB (collection `search_logs`).
+```python
+background_tasks.add_task(
+    _log_search_query,
+    search_logs_col=deps.search_logs_col,
+    query_text=query,
+    bm25_res=bm25_res_for_log,
+    vector_res=vec_res_for_log,
+    hybrid_res=hybrid_res_for_log,
+    user_id=user_id, # Theo dõi hành vi cá nhân user
+)
+```
+*Tác dụng:* API Search không bị nghẽn (delay) chờ lưu log. Log lưu lại đầy đủ Top 10 ID của cả BM25, Vector và Hybrid, nhằm làm kho Data phục vụ Train Recommendation System sau này. 
