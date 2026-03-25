@@ -122,6 +122,8 @@ Công thức lõi sử dụng:
 $$
 RRF\_Score(d) = \frac{W_{BM25}}{k + Rank_{BM25}(d)} + \frac{W_{Vector}}{k + Rank_{Vector}(d)}
 $$
+
+
 *Trong đó:*
 - $d$: Document ID (Sản phẩm).
 - $k = 60$: Hằng số san phẳng độ lệch hạng chuẩn (theo nghiên cứu khoa học của Microsoft/Google).
