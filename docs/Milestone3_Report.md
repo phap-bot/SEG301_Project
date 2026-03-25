@@ -119,7 +119,9 @@ def search(self, query: str, top_k: int = 50) -> List[Tuple[str, float, str]]:
 Do BM25 điểm có thể vọt lên tới 30, trong khi Vector Score luôn ở dạng `1 / (1+dist)` < 1.0, việc cộng điểm trực tiếp sẽ thiên vị BM25. Ta dùng mô hình RRF để cộng "thứ hạng" bù trừ.
 Công thức lõi sử dụng:
 
-$$ RRF\_Score(d) = \frac{W_{BM25}}{k + Rank_{BM25}(d)} + \frac{W_{Vector}}{k + Rank_{Vector}(d)} $$
+$$
+RRF\_Score(d) = \frac{W_{BM25}}{k + Rank_{BM25}(d)} + \frac{W_{Vector}}{k + Rank_{Vector}(d)}
+$$
 *Trong đó:*
 - $d$: Document ID (Sản phẩm).
 - $k = 60$: Hằng số san phẳng độ lệch hạng chuẩn (theo nghiên cứu khoa học của Microsoft/Google).
